@@ -9,7 +9,15 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ data }: OverviewTabProps) {
-  const getPerformanceLevel = (value: number) => {
+  const getPerformanceLevel = (value: number, isEsatScore = false) => {
+    if (isEsatScore) {
+      // For eSAT score (1-5 scale), calculate thresholds differently
+      if (value >= 4.2) return 'high';    // 4.2-5.0 = high
+      if (value >= 3.0) return 'medium';  // 3.0-4.1 = medium  
+      return 'low';                       // 1.0-2.9 = low
+    }
+    
+    // For percentage metrics
     if (value >= 70) return 'high';
     if (value >= 50) return 'medium';
     return 'low';
@@ -31,6 +39,10 @@ export function OverviewTab({ data }: OverviewTabProps) {
       .join(' ');
   };
 
+  // Get eSAT score from data
+  const esatScore = data.keyMetrics?.esatScore;
+  const esatScoreOutOf = data.keyMetrics?.esatScoreOutOf || 5;
+
   return (
     <div className="p-8 space-y-8">
       {/* Executive Summary */}
@@ -38,14 +50,33 @@ export function OverviewTab({ data }: OverviewTabProps) {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-slate-800">Executive Summary</h2>
           
-          {data.executiveSummary.overview && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">Overview</h3>
-              <div className="text-slate-700 leading-relaxed">
-                {parseHtmlToReact(data.executiveSummary.overview)}
-              </div>
-            </div>
-          )}
+        {data.executiveSummary && (
+          <div className="mb-16">
+              
+              {/* Overview Card */}
+              {data.executiveSummary.overview && (
+                <div className="group relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                  <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-500">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800">Executive Overview</h3>
+                        <p className="text-green-600 text-sm">Strategic Analysis</p>
+                      </div>
+                    </div>
+                    <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed">
+                      {parseHtmlToReact(data.executiveSummary.overview)}
+                    </div>
+                  </div>
+                </div>
+              )}
+          </div>
+        )}
 
         {/* Key Findings - Clean Terminal Style */}
         {data.executiveSummary?.keyFindings && data.executiveSummary.keyFindings.length > 0 && (
@@ -80,15 +111,75 @@ export function OverviewTab({ data }: OverviewTabProps) {
             </div>
           </div>
         )}
+              {/* Strategic Implications */}
+              {data.executiveSummary.strategicImplication && (
+                <div className="group relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-gray-400/20 to-gray-500/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                  <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-500">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800">Strategic Implications</h3>
+                        <p className="text-gray-600 text-sm">Forward Analysis</p>
+                      </div>
+                    </div>
+                    <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed">
+                      {parseHtmlToReact(data.executiveSummary.strategicImplication)}
+                    </div>
+                  </div>
+                </div>
+              )}
+        </div>
+      )}
 
-          {data.executiveSummary.strategicImplication && (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">Strategic Implications</h3>
-              <div className="text-slate-700 leading-relaxed">
-                {parseHtmlToReact(data.executiveSummary.strategicImplication)}
+      {/* eSAT Score Section */}
+      {esatScore !== null && esatScore !== undefined && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-slate-800">Employee Satisfaction Score</h2>
+          
+          <div className="group relative max-w-md">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-500">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800">eSAT Score</h3>
+                  <p className="text-blue-600 text-sm">Overall Employee Satisfaction</p>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-6xl font-bold text-gray-800 mb-2">
+                  {esatScore.toFixed(1)}
+                </div>
+                <div className="text-lg text-gray-600 mb-4">
+                  out of {esatScoreOutOf}
+                </div>
+                
+                <div className="w-full bg-slate-200 rounded-full h-4 mb-4">
+                  <div 
+                    className={`h-4 rounded-full ${getPerformanceColor(getPerformanceLevel(esatScore, true))}`}
+                    style={{ width: `${(esatScore / esatScoreOutOf) * 100}%` }}
+                  />
+                </div>
+                
+                <div className={`px-4 py-2 rounded-full text-sm font-medium uppercase tracking-wide inline-block
+                  ${getPerformanceLevel(esatScore, true) === 'high' ? 'bg-green-100 border border-green-300 text-slate-700' : 
+                    getPerformanceLevel(esatScore, true) === 'medium' ? 'bg-yellow-100 border border-yellow-300 text-slate-700' : 
+                    'bg-red-100 border border-red-300 text-slate-700'}`}>
+                  {getPerformanceLevel(esatScore, true)} satisfaction
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -108,7 +199,9 @@ export function OverviewTab({ data }: OverviewTabProps) {
                   Key Strengths
                 </h3>
                 <div className="space-y-3">
-                  {data.keyMetrics.keyStrengths.map((strength, index) => {
+                  {data.keyMetrics.keyStrengths
+                    .filter(strength => !strength.description.toLowerCase().includes('esat'))
+                    .map((strength, index) => {
                     const currentValue = strength.values?.[0];
                     const level = currentValue ? getPerformanceLevel(currentValue) : 'medium';
                     
@@ -142,7 +235,9 @@ export function OverviewTab({ data }: OverviewTabProps) {
                   Areas for Improvement
                 </h3>
                 <div className="space-y-3">
-                  {data.keyMetrics.improvementAreas.map((area, index) => {
+                  {data.keyMetrics.improvementAreas
+                    .filter(area => !area.description.toLowerCase().includes('esat'))
+                    .map((area, index) => {
                     const currentValue = area.values?.[0];
                     const level = currentValue ? getPerformanceLevel(currentValue) : 'medium';
                     

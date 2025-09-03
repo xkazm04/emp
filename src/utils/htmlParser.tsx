@@ -185,6 +185,11 @@ function parseInlineElements(text: string): React.ReactNode {
       className: 'font-medium text-blue-900 bg-blue-50 px-2 py-0.5 rounded'
     },
     { 
+      regex: /<span class=['"]trend-negative['"][^>]*>(.*?)<\/span>/g, 
+      type: 'challenge' as const,
+      className: 'font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded border border-red-200'
+    },
+    { 
       regex: /<span class=['"]challenge-indicator['"][^>]*>(.*?)<\/span>/g, 
       type: 'challenge' as const,
       className: 'font-semibold text-red-900 bg-red-50 px-2 py-0.5 rounded'

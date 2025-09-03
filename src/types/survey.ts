@@ -68,7 +68,7 @@ export interface LeaderKeyStats {
     values: number[];
     topPerformerValues: number[];
   };
-  ideasValued: {
+  retention: {
     unit: string;
     values: number[];
     topPerformerValues: number[];

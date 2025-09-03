@@ -45,6 +45,23 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
     return 'text-slate-400';
   };
 
+  // Expected metrics based on Leadership tab keyStats
+  const expectedMetrics = [
+    'confidence_in_leadership',
+    'have_tools_and_resources', 
+    'feel_empowered_to_make_decisions',
+    'see_themselves_here_next_year'
+  ];
+
+  // Check which expected metrics are available
+  const availableExpectedMetrics = data.performanceMetrics?.filter(metric => 
+    expectedMetrics.includes(metric.metricKey)
+  ) || [];
+
+  const missingMetrics = expectedMetrics.filter(key => 
+    !data.performanceMetrics?.some(metric => metric.metricKey === key)
+  );
+
   if (!data.performanceMetrics || data.performanceMetrics.length === 0) {
     return (
       <div className="p-8">
@@ -70,6 +87,27 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
         </div>
       </div>
 
+      {/* Metrics Alignment Notice */}
+      {missingMetrics.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <h3 className="font-semibold text-yellow-800">Missing Leadership Metrics</h3>
+          </div>
+          <p className="text-sm text-yellow-700">
+            Some metrics shown in the Leadership tab are not available in the performance statistics: 
+            <span className="font-medium">
+              {missingMetrics.map(key => key.replace(/_/g, ' ')).join(', ')}
+            </span>
+          </p>
+          <p className="text-xs text-yellow-600 mt-1">
+            Showing {availableExpectedMetrics.length} of {expectedMetrics.length} leadership metrics plus {data.performanceMetrics.length - availableExpectedMetrics.length} additional metrics.
+          </p>
+        </div>
+      )}
+
       {/* Performance Metrics Table */}
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
@@ -91,7 +129,14 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {data.performanceMetrics.map((metric, index) => {
+              {/* First show leadership-related metrics */}
+              {availableExpectedMetrics
+                .sort((a, b) => {
+                  // Sort by priority: confidence, tools, empowerment, retention
+                  const priority = ['confidence_in_leadership', 'have_tools_and_resources', 'feel_empowered_to_make_decisions', 'see_themselves_here_next_year'];
+                  return priority.indexOf(a.metricKey) - priority.indexOf(b.metricKey);
+                })
+                .map((metric, index) => {
                 const overallCurrent = metric.overall?.values?.[0];
                 const overallPrevious = metric.overall?.values?.[1];
                 const topPerformersCurrent = metric.topPerformers?.values?.[0];
@@ -113,7 +158,101 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 const topPerformersLevel = topPerformersCurrent ? getPerformanceLevel(topPerformersCurrent) : 'medium';
 
                 return (
-                  <tr key={index} className="hover:bg-slate-50 transition-colors">
+                  <tr key={`leadership-${index}`} className="hover:bg-slate-50 transition-colors border-l-4 border-l-blue-500">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                          <div className="font-bold text-slate-900">{metric.metricName}</div>
+                          <div className="text-xs text-blue-600 font-medium">Leadership Metric</div>
+                        </div>
+                      </div>
+                    </td>
+                    
+                    {/* Overall Column */}
+                    <td className="px-6 py-4 text-center">
+                      {overallCurrent ? (
+                        <div className="space-y-1">
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(overallLevel)}`}>
+                            {Math.round(overallCurrent)}%
+                          </div>
+                          {overallChange !== null && (
+                            <div className={`flex items-center justify-center gap-1 ${getChangeColor(overallChange)}`}>
+                              <span>{getChangeIcon(overallChange)}</span>
+                              <span>{formatChange(overallChange)}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400">N/A</span>
+                      )}
+                    </td>
+                    
+                    {/* Top Performers Column */}
+                    <td className="px-6 py-4 text-center">
+                      {topPerformersCurrent ? (
+                        <div className="space-y-1">
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(topPerformersLevel)}`}>
+                            {Math.round(topPerformersCurrent)}%
+                          </div>
+                          {topPerformersChange !== null && (
+                            <div className={`flex items-center justify-center gap-1 ${getChangeColor(topPerformersChange)}`}>
+                              <span>{getChangeIcon(topPerformersChange)}</span>
+                              <span>{formatChange(topPerformersChange)}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400">N/A</span>
+                      )}
+                    </td>
+                    
+                    {/* Gap Column */}
+                    <td className="px-6 py-4 text-center">
+                      {gap !== null ? (
+                        <div className={`inline-flex items-center px-2 py-1 rounded font-medium
+                          ${gap > 20 ? 'bg-red-100 text-red-700' : 
+                            gap > 10 ? 'bg-yellow-100 text-yellow-700' : 
+                            gap > 0 ? 'bg-green-100 text-green-700' : 
+                            'bg-slate-100 text-slate-700'}`}>
+                          {gap > 0 ? '+' : ''}{gap.toFixed(1)}pp
+                        </div>
+                      ) : (
+                        <span className="text-slate-400">N/A</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {/* Then show other metrics */}
+              {data.performanceMetrics
+                .filter(metric => !expectedMetrics.includes(metric.metricKey))
+                .map((metric, index) => {
+                const overallCurrent = metric.overall?.values?.[0];
+                const overallPrevious = metric.overall?.values?.[1];
+                const topPerformersCurrent = metric.topPerformers?.values?.[0];
+                const topPerformersPrevious = metric.topPerformers?.values?.[1];
+                
+                const overallChange = overallCurrent && overallPrevious 
+                  ? calculateChange(overallCurrent, overallPrevious) 
+                  : null;
+                
+                const topPerformersChange = topPerformersCurrent && topPerformersPrevious 
+                  ? calculateChange(topPerformersCurrent, topPerformersPrevious) 
+                  : null;
+
+                const gap = overallCurrent && topPerformersCurrent 
+                  ? topPerformersCurrent - overallCurrent 
+                  : null;
+
+                const overallLevel = overallCurrent ? getPerformanceLevel(overallCurrent) : 'medium';
+                const topPerformersLevel = topPerformersCurrent ? getPerformanceLevel(topPerformersCurrent) : 'medium';
+
+                return (
+                  <tr key={`other-${index}`} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-900">{metric.metricName}</div>
                     </td>
@@ -180,13 +319,33 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
 
       {/* Summary Cards */}
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Highest Performing Metric */}
+        {/* Highest Performing Leadership Metric */}
         {(() => {
-          const highestMetric = data.performanceMetrics
-            .filter(m => m.overall?.values?.[0])
+          const leadershipMetrics = availableExpectedMetrics.filter(m => m.overall?.values?.[0]);
+          const highestLeadershipMetric = leadershipMetrics
             .sort((a, b) => (b.overall?.values?.[0] || 0) - (a.overall?.values?.[0] || 0))[0];
           
-          if (!highestMetric) return null;
+          if (!highestLeadershipMetric) {
+            // Fallback to any metric
+            const fallbackMetric = data.performanceMetrics
+              .filter(m => m.overall?.values?.[0])
+              .sort((a, b) => (b.overall?.values?.[0] || 0) - (a.overall?.values?.[0] || 0))[0];
+            
+            if (!fallbackMetric) return null;
+            
+            return (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <h3 className="font-semibold text-green-800">Top Performer</h3>
+                </div>
+                <p className="text-sm text-green-700 font-medium">{fallbackMetric.metricName}</p>
+                <p className="text-2xl font-bold text-green-800">{Math.round(fallbackMetric.overall?.values?.[0] || 0)}%</p>
+              </div>
+            );
+          }
           
           return (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -194,21 +353,41 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <h3 className="font-semibold text-green-800">Top Performer</h3>
+                <h3 className="font-semibold text-green-800">Best Leadership Metric</h3>
               </div>
-              <p className="text-sm text-green-700 font-medium">{highestMetric.metricName}</p>
-              <p className="text-2xl font-bold text-green-800">{Math.round(highestMetric.overall?.values?.[0] || 0)}%</p>
+              <p className="text-sm text-green-700 font-medium">{highestLeadershipMetric.metricName}</p>
+              <p className="text-2xl font-bold text-green-800">{Math.round(highestLeadershipMetric.overall?.values?.[0] || 0)}%</p>
             </div>
           );
         })()}
 
-        {/* Lowest Performing Metric */}
+        {/* Lowest Performing Leadership Metric */}
         {(() => {
-          const lowestMetric = data.performanceMetrics
-            .filter(m => m.overall?.values?.[0])
+          const leadershipMetrics = availableExpectedMetrics.filter(m => m.overall?.values?.[0]);
+          const lowestLeadershipMetric = leadershipMetrics
             .sort((a, b) => (a.overall?.values?.[0] || 0) - (b.overall?.values?.[0] || 0))[0];
           
-          if (!lowestMetric) return null;
+          if (!lowestLeadershipMetric) {
+            // Fallback to any metric
+            const fallbackMetric = data.performanceMetrics
+              .filter(m => m.overall?.values?.[0])
+              .sort((a, b) => (a.overall?.values?.[0] || 0) - (b.overall?.values?.[0] || 0))[0];
+            
+            if (!fallbackMetric) return null;
+            
+            return (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <h3 className="font-semibold text-red-800">Needs Attention</h3>
+                </div>
+                <p className="text-sm text-red-700 font-medium">{fallbackMetric.metricName}</p>
+                <p className="text-2xl font-bold text-red-800">{Math.round(fallbackMetric.overall?.values?.[0] || 0)}%</p>
+              </div>
+            );
+          }
           
           return (
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -216,20 +395,23 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                <h3 className="font-semibold text-red-800">Needs Attention</h3>
+                <h3 className="font-semibold text-red-800">Priority Leadership Focus</h3>
               </div>
-              <p className="text-sm text-red-700 font-medium">{lowestMetric.metricName}</p>
-              <p className="text-2xl font-bold text-red-800">{Math.round(lowestMetric.overall?.values?.[0] || 0)}%</p>
+              <p className="text-sm text-red-700 font-medium">{lowestLeadershipMetric.metricName}</p>
+              <p className="text-2xl font-bold text-red-800">{Math.round(lowestLeadershipMetric.overall?.values?.[0] || 0)}%</p>
             </div>
           );
         })()}
 
         {/* Average Performance */}
         {(() => {
-                     const validMetrics = data.performanceMetrics.filter(m => m.overall?.values?.[0]);
-           if (validMetrics.length === 0) return null;
+          const validMetrics = data.performanceMetrics.filter(m => m.overall?.values?.[0]);
+          if (validMetrics.length === 0) return null;
            
-           const average = validMetrics.reduce((sum, m) => sum + (m.overall?.values?.[0] || 0), 0) / validMetrics.length;
+          const average = validMetrics.reduce((sum, m) => sum + (m.overall?.values?.[0] || 0), 0) / validMetrics.length;
+          const leadershipAverage = availableExpectedMetrics.length > 0 
+            ? availableExpectedMetrics.reduce((sum, m) => sum + (m.overall?.values?.[0] || 0), 0) / availableExpectedMetrics.length
+            : null;
           
           return (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -238,10 +420,19 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                   <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
                   <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
                 </svg>
-                <h3 className="font-semibold text-blue-800">Average</h3>
+                <h3 className="font-semibold text-blue-800">Average Performance</h3>
               </div>
-              <p className="text-sm text-blue-700 font-medium">Across all metrics</p>
-              <p className="text-2xl font-bold text-blue-800">{Math.round(average)}%</p>
+              <p className="text-sm text-blue-700 font-medium">
+                {leadershipAverage ? 'Leadership metrics' : 'All metrics'}
+              </p>
+              <p className="text-2xl font-bold text-blue-800">
+                {Math.round(leadershipAverage || average)}%
+              </p>
+              {leadershipAverage && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Overall average: {Math.round(average)}%
+                </p>
+              )}
             </div>
           );
         })()}

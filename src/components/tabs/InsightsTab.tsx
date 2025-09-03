@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { SurveyData } from '@/types/survey';
-import { parseHtmlToReact } from '@/utils/htmlParser';
+import { motion } from 'framer-motion';
+import { SurveyData, QualitativeInsight } from '@/types/survey';
+import { InsightModal } from '@/components/ui/InsightModal';
 
 interface InsightsTabProps {
   data: SurveyData;
 }
 
 export function InsightsTab({ data }: InsightsTabProps) {
-  const [selectedInsight, setSelectedInsight] = useState<number | null>(null);
+  const [selectedInsight, setSelectedInsight] = useState<QualitativeInsight | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const hasContent = data.executiveSummary || (data.qualitativeInsights && data.qualitativeInsights.length > 0);
 
@@ -59,9 +60,27 @@ export function InsightsTab({ data }: InsightsTabProps) {
       'bold_ideas': 'from-green-400 to-green-500',
       'leadership_support': 'from-slate-500 to-slate-600',
       'role_clarity': 'from-gray-400 to-gray-500',
-      'tools_resources': 'from-green-500 to-green-600'
+      'tools_resources': 'from-green-500 to-green-600',
+      'empowerment_changes': 'from-blue-500 to-blue-600'
     };
     return colorMap[category] || 'from-gray-500 to-slate-600';
+  };
+
+  const formatCategoryName = (category: string) => {
+    return category
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const handleInsightClick = (insight: QualitativeInsight) => {
+    setSelectedInsight(insight);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedInsight(null);
   };
 
   return (
@@ -74,61 +93,6 @@ export function InsightsTab({ data }: InsightsTabProps) {
       </div>
 
       <div className="relative z-10 p-6 lg:p-8 max-w-[95rem] mx-auto">
-        {/* Executive Summary - Clean Cards */}
-        {data.executiveSummary && (
-          <div className="mb-16">
-            <div className="grid lg:grid-cols-2 gap-8">
-              
-              {/* Overview Card */}
-              {data.executiveSummary.overview && (
-                <div className="group relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                  <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-500">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-800">Executive Overview</h3>
-                        <p className="text-green-600 text-sm">Strategic Analysis</p>
-                      </div>
-                    </div>
-                    <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed">
-                      {parseHtmlToReact(data.executiveSummary.overview)}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Strategic Implications */}
-              {data.executiveSummary.strategicImplication && (
-                <div className="group relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-gray-400/20 to-gray-500/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                  <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-500">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-800">Strategic Implications</h3>
-                        <p className="text-gray-600 text-sm">Forward Analysis</p>
-                      </div>
-                    </div>
-                    <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed">
-                      {parseHtmlToReact(data.executiveSummary.strategicImplication)}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-
         {/* Insights Matrix - Clean Grid */}
         {topInsights.length > 0 && (
           <div className="mb-16">
@@ -145,7 +109,7 @@ export function InsightsTab({ data }: InsightsTabProps) {
                   <motion.div 
                     key={index} 
                     className="group relative cursor-pointer"
-                    onClick={() => setSelectedInsight(selectedInsight === index ? null : index)}
+                    onClick={() => handleInsightClick(insight)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
@@ -156,7 +120,7 @@ export function InsightsTab({ data }: InsightsTabProps) {
                       {/* Header with frequency */}
                       <div className="flex items-start justify-between mb-4">
                         <span className="text-gray-500 text font-bold uppercase tracking-wider">
-                          {insight.category.replace('_', ' ')}
+                          {formatCategoryName(insight.category)}
                         </span>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">
@@ -175,50 +139,23 @@ export function InsightsTab({ data }: InsightsTabProps) {
                         </p>
                       </div>
 
-                      {/* Expandable Sample Responses */}
-                      <AnimatePresence>
-                        {selectedInsight === index && insight.sampleResponses && insight.sampleResponses.length > 0 && (
-                          <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="mt-4 pt-4 border-t border-gray-200 overflow-hidden"
-                          >
-                            <div className="flex items-center gap-2 mb-3">
-                              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                              </svg>
-                              <span className="text-green-600 text-xs font-mono uppercase">Employee Voices</span>
-                            </div>
-                            <div className="space-y-3 max-h-48 overflow-y-auto">
-                              {insight.sampleResponses.map((sample, sIndex) => (
-                                <motion.div 
-                                  key={sIndex} 
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: sIndex * 0.1 }}
-                                  className="bg-gray-50 border border-gray-200 rounded-lg p-3 border-l-4 border-l-green-500"
-                                >
-                                  <blockquote className="text-gray-700 text-sm italic leading-relaxed">
-                                    &ldquo;{sample}&rdquo;
-                                  </blockquote>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      {/* Response count indicator */}
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>{insight.sampleResponses?.length || 0} responses</span>
+                        </div>
+                        <div className="text-xs text-gray-400 uppercase tracking-wide">
+                          Click to view
+                        </div>
+                      </div>
 
                       {/* Click indicator */}
                       <div className="mt-4 flex items-center justify-center">
-                        <div className="w-8 h-1 bg-gray-200 rounded-full overflow-hidden">
-                          <motion.div 
-                            className={`h-full bg-gradient-to-r ${colorClass}`}
-                            initial={{ width: "8px" }}
-                            animate={{ width: selectedInsight === index ? "100%" : "8px" }}
-                            transition={{ duration: 0.3 }}
-                          />
+                        <div className="w-8 h-1 bg-gray-200 rounded-full">
+                          <div className={`h-full w-2 bg-gradient-to-r ${colorClass} rounded-full transition-all duration-300 group-hover:w-full`} />
                         </div>
                       </div>
                     </div>
@@ -229,12 +166,20 @@ export function InsightsTab({ data }: InsightsTabProps) {
             
             <div className="text-center mt-8">
               <p className="text-gray-500 text-sm">
-                <span className="text-green-600 font-mono">CLICK</span> any insight card to expand employee responses
+                <span className="text-green-600 font-mono">CLICK</span> any insight card to view detailed employee responses
               </p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Modal */}
+      <InsightModal
+        insight={selectedInsight}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        frequency={selectedInsight ? getInsightFrequency(selectedInsight) : 0}
+      />
     </div>
   );
 } 

@@ -76,7 +76,7 @@ export function LeadershipTab({ data }: LeadershipTabProps) {
                   Empowerment
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Ideas Valued
+                  Retention
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Responses
@@ -89,7 +89,7 @@ export function LeadershipTab({ data }: LeadershipTabProps) {
                 const leadershipScore = keyStats.leadershipConfidence?.values?.[0] || 0;
                 const toolsScore = keyStats.tools?.values?.[0] || 0;
                 const empowermentScore = keyStats.empowerment?.values?.[0] || 0;
-                const ideasScore = keyStats.ideasValued?.values?.[0] || 0;
+                const retentionScore = keyStats.retention?.values?.[0] || 0;
                 const teamSize = leader.metrics?.find(m => m.metricKey === 'total_responses')?.values?.[0] || 0;
                 
                 const isExpanded = expandedLeader === leader.id;
@@ -175,17 +175,17 @@ export function LeadershipTab({ data }: LeadershipTabProps) {
                         </div>
                       </td>
 
-                      {/* Ideas Valued Score */}
+                      {/* Retention Score */}
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-center">
                           <div className="w-20">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-slate-600">{Math.round(ideasScore)}%</span>
+                              <span className="text-slate-600">{Math.round(retentionScore)}%</span>
                             </div>
                             <div className="w-full bg-slate-200 rounded-full h-2">
                               <div 
-                                className={`h-2 rounded-full ${getBarColor(getPerformanceLevel(ideasScore))}`}
-                                style={{ width: `${ideasScore}%` }}
+                                className={`h-2 rounded-full ${getBarColor(getPerformanceLevel(retentionScore))}`}
+                                style={{ width: `${retentionScore}%` }}
                               />
                             </div>
                           </div>
