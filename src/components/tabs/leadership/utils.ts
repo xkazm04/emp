@@ -14,9 +14,9 @@ export const getPerformanceLevel = (value: number, isEsatScore = false) => {
 
 export const getBarColor = (level: string) => {
   switch (level) {
-    case 'high': return 'bg-green-100';
-    case 'medium': return 'bg-amber-200'; // Changed from yellow-100 to amber-200 for better visibility
-    case 'low': return 'bg-red-100';
-    default: return 'bg-slate-100';
+    case 'high': return 'bg-gradient-to-r from-green-400 to-green-500 border border-green-300 shadow-sm';
+    case 'medium': return 'bg-gradient-to-r from-amber-300 to-amber-400 border border-amber-200 shadow-sm';
+    case 'low': return 'bg-gradient-to-r from-red-400 to-red-500 border border-red-300 shadow-sm';
+    default: return 'bg-slate-300 border border-slate-200';
   }
 };

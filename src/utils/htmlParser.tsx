@@ -106,7 +106,7 @@ function parseHtmlContent(htmlString: string): React.ReactNode {
   let elementKey = 0;
 
   // Split by various HTML tags
-  const parts = htmlString.split(/(<h3>[\s\S]*?<\/h3>|<h4>[\s\S]*?<\/h4>|<p>[\s\S]*?<\/p>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
+  const parts = htmlString.split(/(<h3>[\s\S]*?<\/h3>|<h4[^>]*>[\s\S]*?<\/h4>|<p[^>]*>[\s\S]*?<\/p>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
 
   parts.forEach(part => {
     if (part.startsWith('<h3>')) {
@@ -116,17 +116,23 @@ function parseHtmlContent(htmlString: string): React.ReactNode {
           {parseInlineElements(h3Content)}
         </h3>
       );
-    } else if (part.startsWith('<h4>')) {
-      const h4Content = part.replace(/<\/?h4>/g, '');
+    } else if (part.startsWith('<h4')) {
+      const h4Content = part.replace(/<\/?h4[^>]*>/g, '');
       elements.push(
         <h4 key={elementKey++} className="text-md font-semibold text-slate-800 mt-4 mb-2">
           {parseInlineElements(h4Content)}
         </h4>
       );
-    } else if (part.startsWith('<p>')) {
-      const pContent = part.replace(/<\/?p>/g, '');
+    } else if (part.startsWith('<p')) {
+      const pContent = part.replace(/<\/?p[^>]*>/g, '');
+      // Check if this is a focus-area-description
+      const isFocusDescription = part.includes("class='focus-area-description'") || part.includes('class="focus-area-description"');
+      const className = isFocusDescription 
+        ? "text-sm text-slate-700 mb-3 leading-relaxed font-medium" 
+        : "text-sm text-slate-600 mb-3 leading-relaxed";
+      
       elements.push(
-        <div key={elementKey++} className="text-sm text-slate-600 mb-3 leading-relaxed">
+        <div key={elementKey++} className={className}>
           {parseInlineElements(pContent)}
         </div>
       );

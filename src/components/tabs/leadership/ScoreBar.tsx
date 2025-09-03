@@ -8,37 +8,48 @@ interface ScoreBarProps {
   showLabel?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  variant?: 'compact' | 'prominent';
 }
 
 export function ScoreBar({ 
   score, 
   showLabel = true, 
   size = 'md',
-  className = '' 
+  className = '',
+  variant = 'compact'
 }: ScoreBarProps) {
   const sizeClasses = {
-    sm: 'w-16 h-1.5',
-    md: 'w-20 h-2',
-    lg: 'w-24 h-3'
+    sm: variant === 'prominent' ? 'w-20 h-2' : 'w-16 h-1.5',
+    md: variant === 'prominent' ? 'w-24 h-3' : 'w-20 h-2',
+    lg: variant === 'prominent' ? 'w-32 h-4' : 'w-24 h-3'
   };
 
   const textSizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base'
+    sm: variant === 'prominent' ? 'text-sm font-bold' : 'text-xs',
+    md: variant === 'prominent' ? 'text-base font-bold' : 'text-sm',
+    lg: variant === 'prominent' ? 'text-lg font-bold' : 'text-base'
+  };
+
+  const level = getPerformanceLevel(score);
+  const levelColors = {
+    high: variant === 'prominent' ? 'text-green-700' : 'text-slate-600',
+    medium: variant === 'prominent' ? 'text-amber-700' : 'text-slate-600', 
+    low: variant === 'prominent' ? 'text-red-700' : 'text-slate-600'
   };
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <div className={sizeClasses[size]}>
         {showLabel && (
-          <div className={`flex items-center justify-between mb-1 ${textSizeClasses[size]}`}>
-            <span className="text-slate-600">{Math.round(score)}%</span>
+          <div className={`flex items-center justify-center mb-2 ${textSizeClasses[size]}`}>
+            <span className={levelColors[level]}>
+              {Math.round(score)}%
+            </span>
           </div>
         )}
-        <div className="w-full bg-slate-200 rounded-full h-full">
+        <div className="w-full bg-slate-200 rounded-full h-full shadow-inner">
           <div
-            className={`h-full rounded-full transition-all duration-300 ${getBarColor(getPerformanceLevel(score))}`}
+            className={`h-full rounded-full transition-all duration-500 shadow-sm ${getBarColor(getPerformanceLevel(score))}`}
             style={{ width: `${Math.min(score, 100)}%` }}
           />
         </div>

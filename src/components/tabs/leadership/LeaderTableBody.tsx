@@ -68,29 +68,31 @@ export function LeaderTableBody({
 
               {/* Responses */}
               <td className="px-4 py-4 text-center">
-                <span className="font-bold text-slate-900">
-                  {teamSize}
-                </span>
+                <div className="inline-flex items-center justify-center px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg">
+                  <span className="text-lg font-bold text-slate-900">
+                    {teamSize}
+                  </span>
+                </div>
               </td>
 
               {/* Leadership Score */}
               <td className="px-4 py-4">
-                <ScoreBar score={leadershipScore} />
+                <ScoreBar score={leadershipScore} variant="prominent" size="md" />
               </td>
 
               {/* Tools Score */}
               <td className="px-4 py-4">
-                <ScoreBar score={toolsScore} />
+                <ScoreBar score={toolsScore} variant="prominent" size="md" />
               </td>
 
               {/* Empowerment Score */}
               <td className="px-4 py-4">
-                <ScoreBar score={empowermentScore} />
+                <ScoreBar score={empowermentScore} variant="prominent" size="md" />
               </td>
 
               {/* Retention Score */}
               <td className="px-4 py-4">
-                <ScoreBar score={retentionScore} />
+                <ScoreBar score={retentionScore} variant="prominent" size="md" />
               </td>
             </tr>
 

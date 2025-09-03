@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { SurveyData } from '@/types/survey';
+import { StatisticsCard } from './statistics';
 
 interface StatisticsTabProps {
   data: SurveyData;
@@ -14,35 +15,9 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
     return 'low';
   };
 
-  const getPerformanceColor = (level: string) => {
-    switch (level) {
-      case 'high': return 'text-green-700 bg-green-50';
-      case 'medium': return 'text-yellow-700 bg-yellow-50';
-      case 'low': return 'text-red-700 bg-red-50';
-      default: return 'text-slate-700 bg-slate-50';
-    }
-  };
-
   const calculateChange = (current: number, previous: number) => {
     if (!previous || previous === 0) return null;
     return ((current - previous) / previous) * 100;
-  };
-
-  const formatChange = (change: number) => {
-    const sign = change >= 0 ? '+' : '';
-    return `${sign}${change.toFixed(1)}%`;
-  };
-
-  const getChangeIcon = (change: number) => {
-    if (change > 0) return '▲';
-    if (change < 0) return '▼';
-    return '●';
-  };
-
-  const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600';
-    if (change < 0) return 'text-red-600';
-    return 'text-slate-400';
   };
 
   // Expected metrics based on Leadership tab keyStats
@@ -170,17 +145,12 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Overall Column */}
                     <td className="px-6 py-4 text-center">
                       {overallCurrent ? (
-                        <div className="space-y-1">
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(overallLevel)}`}>
-                            {Math.round(overallCurrent)}%
-                          </div>
-                          {overallChange !== null && (
-                            <div className={`flex items-center justify-center gap-1 ${getChangeColor(overallChange)}`}>
-                              <span>{getChangeIcon(overallChange)}</span>
-                              <span>{formatChange(overallChange)}</span>
-                            </div>
-                          )}
-                        </div>
+                        <StatisticsCard
+                          value={overallCurrent}
+                          change={overallChange}
+                          level={overallLevel}
+                          type="overall"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}
@@ -189,17 +159,12 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Top Performers Column */}
                     <td className="px-6 py-4 text-center">
                       {topPerformersCurrent ? (
-                        <div className="space-y-1">
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(topPerformersLevel)}`}>
-                            {Math.round(topPerformersCurrent)}%
-                          </div>
-                          {topPerformersChange !== null && (
-                            <div className={`flex items-center justify-center gap-1 ${getChangeColor(topPerformersChange)}`}>
-                              <span>{getChangeIcon(topPerformersChange)}</span>
-                              <span>{formatChange(topPerformersChange)}</span>
-                            </div>
-                          )}
-                        </div>
+                        <StatisticsCard
+                          value={topPerformersCurrent}
+                          change={topPerformersChange}
+                          level={topPerformersLevel}
+                          type="topPerformers"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}
@@ -208,13 +173,11 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Gap Column */}
                     <td className="px-6 py-4 text-center">
                       {gap !== null ? (
-                        <div className={`inline-flex items-center px-2 py-1 rounded font-medium
-                          ${gap > 20 ? 'bg-red-100 text-red-700' : 
-                            gap > 10 ? 'bg-yellow-100 text-yellow-700' : 
-                            gap > 0 ? 'bg-green-100 text-green-700' : 
-                            'bg-slate-100 text-slate-700'}`}>
-                          {gap > 0 ? '+' : ''}{gap.toFixed(1)}pp
-                        </div>
+                        <StatisticsCard
+                          value={gap}
+                          level={overallLevel}
+                          type="gap"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}
@@ -256,17 +219,12 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Overall Column */}
                     <td className="px-6 py-4 text-center">
                       {overallCurrent ? (
-                        <div className="space-y-1">
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(overallLevel)}`}>
-                            {Math.round(overallCurrent)}%
-                          </div>
-                          {overallChange !== null && (
-                            <div className={` flex items-center justify-center gap-1 ${getChangeColor(overallChange)}`}>
-                              <span>{getChangeIcon(overallChange)}</span>
-                              <span>{formatChange(overallChange)}</span>
-                            </div>
-                          )}
-                        </div>
+                        <StatisticsCard
+                          value={overallCurrent}
+                          change={overallChange}
+                          level={overallLevel}
+                          type="overall"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}
@@ -275,17 +233,12 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Top Performers Column */}
                     <td className="px-6 py-4 text-center">
                       {topPerformersCurrent ? (
-                        <div className="space-y-1">
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPerformanceColor(topPerformersLevel)}`}>
-                            {Math.round(topPerformersCurrent)}%
-                          </div>
-                          {topPerformersChange !== null && (
-                            <div className={` flex items-center justify-center gap-1 ${getChangeColor(topPerformersChange)}`}>
-                              <span>{getChangeIcon(topPerformersChange)}</span>
-                              <span>{formatChange(topPerformersChange)}</span>
-                            </div>
-                          )}
-                        </div>
+                        <StatisticsCard
+                          value={topPerformersCurrent}
+                          change={topPerformersChange}
+                          level={topPerformersLevel}
+                          type="topPerformers"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}
@@ -294,13 +247,11 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                     {/* Gap Column */}
                     <td className="px-6 py-4 text-center">
                       {gap !== null ? (
-                        <div className={`inline-flex items-center px-2 py-1 rounded  font-medium
-                          ${gap > 20 ? 'bg-red-100 text-red-700' : 
-                            gap > 10 ? 'bg-yellow-100 text-yellow-700' : 
-                            gap > 0 ? 'bg-green-100 text-green-700' : 
-                            'bg-slate-100 text-slate-700'}`}>
-                          {gap > 0 ? '+' : ''}{gap.toFixed(1)}pp
-                        </div>
+                        <StatisticsCard
+                          value={gap}
+                          level={overallLevel}
+                          type="gap"
+                        />
                       ) : (
                         <span className="text-slate-400">N/A</span>
                       )}

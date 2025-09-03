@@ -39,30 +39,30 @@ export function CircularProgress({
   }[level];
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-6">
       <div className="text-right">
-        <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+        <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">
           eSAT Score
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-3xl font-bold text-slate-900">
+        <div className="flex items-center gap-3">
+          <div className="text-4xl font-bold text-slate-900">
             {score.toFixed(1)}
           </div>
-          <div className="text-sm text-slate-500">
+          <div className="text-lg text-slate-500 font-medium">
             / {maxScore.toFixed(1)}
           </div>
           {change !== null && (
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ml-2
-              ${change > 0 ? 'bg-green-100 text-green-700' :
-                change < 0 ? 'bg-red-100 text-red-700' :
-                  'bg-slate-100 text-slate-700'}`}>
+            <span className={`text-sm px-3 py-1 rounded-full font-bold ml-3
+              ${change > 0 ? 'bg-green-100 text-green-800 border border-green-200' :
+                change < 0 ? 'bg-red-100 text-red-800 border border-red-200' :
+                  'bg-slate-100 text-slate-700 border border-slate-200'}`}>
               {change > 0 ? '+' : ''}{change.toFixed(1)}
             </span>
           )}
         </div>
       </div>
 
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="relative shadow-lg" style={{ width: size, height: size }}>
         <svg 
           className="transform -rotate-90" 
           width={size} 
@@ -88,11 +88,11 @@ export function CircularProgress({
             fill="none"
             strokeLinecap="round"
             strokeDasharray={`${progress} ${circumference}`}
-            className="transition-all duration-500"
+            className="transition-all duration-700 drop-shadow-sm"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className={`w-3 h-3 rounded-full ${indicatorColor}`} />
+          <div className={`w-4 h-4 rounded-full shadow-sm ${indicatorColor}`} />
         </div>
       </div>
     </div>
