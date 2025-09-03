@@ -97,9 +97,10 @@ export interface Leader {
 }
 
 export interface QualitativeInsight {
-  insightType: string;
+  title?: string;
+  insightType?: string;
   category: string;
-  rank: number;
+  rank?: number;
   content: string;
   timeseries: {
     [key: string]: {
@@ -107,7 +108,7 @@ export interface QualitativeInsight {
     };
   };
   sampleResponses: string[];
-  questionReference: string;
+  questionReference?: string;
 }
 
 export interface ComparisonDeltas {

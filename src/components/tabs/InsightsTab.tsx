@@ -120,7 +120,7 @@ export function InsightsTab({ data }: InsightsTabProps) {
                       {/* Header with frequency */}
                       <div className="flex items-start justify-between mb-4">
                         <span className="text-gray-500 text font-bold uppercase tracking-wider">
-                          {formatCategoryName(insight.category)}
+                          {insight.title || formatCategoryName(insight.category)}
                         </span>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">

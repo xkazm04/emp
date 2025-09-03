@@ -27,13 +27,6 @@ export function InsightModal({ insight, isOpen, onClose, frequency }: InsightMod
     return colorMap[category] || 'from-gray-500 to-slate-600';
   };
 
-  const formatCategoryName = (category: string) => {
-    return category
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -67,14 +60,11 @@ export function InsightModal({ insight, isOpen, onClose, frequency }: InsightMod
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">
-                        {formatCategoryName(insight.category)}
+                        {insight.title}
                       </h2>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-white/90 text-sm font-medium">
                           {frequency} employee mentions
-                        </span>
-                        <span className="text-white/70 text-sm">
-                          Question Reference: {insight.questionReference}
                         </span>
                       </div>
                     </div>
