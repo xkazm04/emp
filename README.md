@@ -19,11 +19,15 @@ A modern, responsive web application for visualizing employee survey data, migra
 - Key organizational strengths and improvement areas
 - Performance level indicators with color coding
 
+![Overview](public/screenshots/screen_overview.png)
+
 ### Statistics Tab
 - Performance metrics comparison table
 - Overall vs. Top Performers analysis
 - Performance gap calculations
 - Summary cards for highest/lowest performing metrics
+
+![Stats](public/screenshots/screen_stats.png)
 
 ### Leadership Tab
 - Accordion-style leader analysis
@@ -31,11 +35,16 @@ A modern, responsive web application for visualizing employee survey data, migra
 - Focus areas and recommendations
 - Leadership confidence indicators
 
+![Leaders](public/screenshots/screen_leaders.png)
+
 ### Insights Tab
 - Strategic insights and recommendations
 - Qualitative feedback analysis
 - Action items and next steps
 - Rich HTML content parsing
+
+![Insights](public/screenshots/screen_insights.png)
+
 
 ## 🛠 Technology Stack
 
