@@ -28,7 +28,7 @@ export function StatisticsCard({ value, change, level, type = 'overall' }: Stati
 
   const formatChange = (change: number) => {
     const sign = change >= 0 ? '+' : '';
-    return `${sign}${change.toFixed(1)}%`;
+    return `${sign}${change.toFixed(1)}pp`;
   };
 
   const getChangeIcon = (change: number) => {

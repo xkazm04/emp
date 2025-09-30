@@ -861,16 +861,30 @@ function createQualitativeInsights(data: SurveyData): Paragraph[] {
         })
       );
 
-      // Process insights in this category (sorted by rank)
-      const categoryInsights = insightsByCategory[category].sort((a, b) => (a.rank || 0) - (b.rank || 0));
+      // Process insights in this category (sorted by frequency - highest first)
+      // Get the most recent quarter key dynamically
+      const getMostRecentQuarter = (insight: QualitativeInsight) => {
+        if (!insight.timeseries) return null;
+        const quarters = Object.keys(insight.timeseries);
+        return quarters.length > 0 ? quarters[0] : null;
+      };
+      
+      const getInsightFrequency = (insight: QualitativeInsight) => {
+        const quarter = getMostRecentQuarter(insight);
+        return quarter && insight.timeseries ? insight.timeseries[quarter]?.frequency || 0 : 0;
+      };
+      
+      const categoryInsights = insightsByCategory[category].sort((a, b) => 
+        getInsightFrequency(b) - getInsightFrequency(a)
+      );
       
       categoryInsights.forEach((insight) => {
-        // Insight content
+        // Insight title and content
         paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${insight.rank}. `,
+                text: insight.title ? `${insight.title}: ` : '',
                 size: SIZES.body,
                 bold: true,
                 font: FONTS.body,
@@ -885,8 +899,8 @@ function createQualitativeInsights(data: SurveyData): Paragraph[] {
           })
         );
 
-        // Frequency information
-        const frequency = insight.timeseries?.['Q2 2025']?.frequency || 0;
+        // Frequency information (using dynamic quarter)
+        const frequency = getInsightFrequency(insight);
         paragraphs.push(
           new Paragraph({
             children: [

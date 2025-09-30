@@ -38,21 +38,19 @@ export function ScoreBar({
   };
 
   return (
-    <div className={`flex items-center justify-center ${className}`}>
-      <div className={sizeClasses[size]}>
-        {showLabel && (
-          <div className={`flex items-center justify-center mb-2 ${textSizeClasses[size]}`}>
-            <span className={levelColors[level]}>
-              {Math.round(score)}%
-            </span>
-          </div>
-        )}
-        <div className="w-full bg-slate-200 rounded-full h-full shadow-inner">
-          <div
-            className={`h-full rounded-full transition-all duration-500 shadow-sm ${getBarColor(getPerformanceLevel(score))}`}
-            style={{ width: `${Math.min(score, 100)}%` }}
-          />
+    <div className={`flex flex-col items-center justify-center gap-2 ${className}`}>
+      {showLabel && (
+        <div className={`${textSizeClasses[size]}`}>
+          <span className={levelColors[level]}>
+            {Math.round(score)}%
+          </span>
         </div>
+      )}
+      <div className={`${sizeClasses[size]} bg-slate-200 rounded-full shadow-inner`}>
+        <div
+          className={`h-full rounded-full transition-all duration-500 shadow-sm ${getBarColor(getPerformanceLevel(score))}`}
+          style={{ width: `${Math.min(score, 100)}%` }}
+        />
       </div>
     </div>
   );

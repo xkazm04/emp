@@ -25,7 +25,7 @@ export function DashboardHeader({ data }: DashboardHeaderProps) {
     const change = current - previous;
     const percentage = Math.abs((change / previous) * 100);
     return {
-      value: Math.abs(change),
+      value: Number(Math.abs(change).toFixed(2)),
       percentage: percentage.toFixed(1),
       isPositive: change >= 0,
       isZero: change === 0
@@ -39,7 +39,7 @@ export function DashboardHeader({ data }: DashboardHeaderProps) {
 
   const getChangeColor = (isPositive: boolean, isZero: boolean) => {
     if (isZero) return 'text-slate-400';
-    return isPositive ? 'text-green-600' : 'text-red-600';
+    return isPositive ? 'text-green-300' : 'text-red-300';
   };
 
   return (
@@ -72,34 +72,36 @@ export function DashboardHeader({ data }: DashboardHeaderProps) {
 
         {/* Key Statistics */}
         {data.keyMetrics?.topStats && data.keyMetrics.topStats.length > 0 && (
-          <div className="flex flex-wrap gap-4">
-            {data.keyMetrics.topStats.map((stat, index) => {
-              const current = stat.values?.[0];
-              const previous = stat.values?.[1];
-              const change = current && previous ? calculateChange(current, previous) : null;
+          <div className="w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              {data.keyMetrics.topStats.map((stat, index) => {
+                const current = stat.values?.[0];
+                const previous = stat.values?.[1];
+                const change = current && previous ? calculateChange(current, previous) : null;
 
-              return (
-                <div
-                  key={index}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 min-w-[140px] text-center"
-                >
-                  <div className="text-2xl font-bold mb-1">
-                    {current?.toLocaleString()}{stat.unit || ''}
-                  </div>
-                  <div className="text-xs text-slate-300 uppercase tracking-wide mb-2">
-                    {stat.label}
-                  </div>
-                  {change && !change.isZero && (
-                    <div className={`text-xs flex items-center justify-center gap-1 ${getChangeColor(change.isPositive, change.isZero)}`}>
-                      <span>{getChangeIcon(change.isPositive, change.isZero)}</span>
-                      <span>
-                        {change.isPositive ? '+' : ''}{change.value}{stat.unit || ''}
-                      </span>
+                return (
+                  <div
+                    key={index}
+                    className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 relative"
+                  >
+                    {change && !change.isZero && (
+                      <div className={`absolute top-3 right-3 text-xs flex items-center gap-1 ${getChangeColor(change.isPositive, change.isZero)}`}>
+                        <span>{getChangeIcon(change.isPositive, change.isZero)}</span>
+                        <span>
+                          {change.value}{stat.unit || ''}
+                        </span>
+                      </div>
+                    )}
+                    <div className="text-2xl font-bold mb-1">
+                      {current?.toLocaleString()}{stat.unit || ''}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    <div className="text-xs text-slate-300 uppercase tracking-wide">
+                      {stat.label}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

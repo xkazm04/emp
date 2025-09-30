@@ -167,18 +167,71 @@ function parseInlineElements(text: string): React.ReactNode {
   const elements: React.ReactNode[] = [];
   let elementKey = 0;
 
+  // Decode HTML entities helper function
+  const decodeHtmlEntities = (str: string): string => {
+    const entityMap: Record<string, string> = {
+      '&darr;': '↓',
+      '&uarr;': '↑',
+      '&rarr;': '→',
+      '&larr;': '←',
+      '&nbsp;': ' ',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&mdash;': '—',
+      '&ndash;': '–',
+    };
+    
+    let decoded = str;
+    Object.keys(entityMap).forEach(entity => {
+      decoded = decoded.replace(new RegExp(entity, 'g'), entityMap[entity]);
+    });
+    
+    return decoded;
+  };
+
   // Clean up malformed HTML - fix duplicate closing spans and values
-  const cleanedText = text
+  let cleanedText = text
     // Fix duplicate metric values like "55%55%)" -> "55%)"
     .replace(/(\d+(?:\.\d+)?%)\1\)/g, '$1)')
     // Fix duplicate closing spans
     .replace(/<\/span>\s*<\/span>/g, '</span>')
     // Fix challenge-indicator spans with nested metric-value spans
     .replace(/(<span class=['"]challenge-indicator['"][^>]*>[^<]*\([^<]*)<span class=['"]metric-value['"][^>]*>([^<]*)<\/span>([^<]*)<\/span>/g, '$1<span class="metric-value">$2</span>$3</span>')
+    // CRITICAL FIX: Ensure spaces around **bold** markdown are preserved
+    // Convert **text** to <strong>text</strong> while preserving spaces
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // SPACING FIXES:
+    // Add space after closing parentheses if followed by capital letter or tag (e.g., "1)Empowering" -> "1) Empowering")
+    .replace(/(\))([A-Z<])/g, '$1 $2')
+    // Add space after punctuation (: , . ;) if followed by letter/tag with no space
+    .replace(/([:\.,;!?])(<span[^>]*>|<strong>|<b>|[A-Z])/g, '$1 $2')
+    // Add space before opening tags if preceded by letter/digit (not already a space)
+    .replace(/([a-zA-Z0-9])(<span[^>]*>|<strong>|<b>)/g, '$1 $2')
+    // Add space after closing tags if followed by letter/digit (not already a space)
+    .replace(/(<\/span>|<\/strong>|<\/b>)([a-zA-Z0-9])/g, '$1 $2')
+    // Add space between concatenated words - only at word boundaries
+    // Match complete words followed by prepositions at the start of the next word
+    // "employeeswith" -> "employees with", "clarityfrom" -> "clarity from"  
+    // Use word boundary \b and specific endings to avoid matching inside words like "communication"
+    .replace(/([a-z]{4,}s)(with|from)\b/gi, '$1 $2')  // "employees|strategies" + with/from
+    .replace(/([a-z]{4,}y)(from|to)\b/gi, '$1 $2')    // "clarity|strategy" + from/to
+    .replace(/([a-z]{4,}s)(to|for)\b/gi, '$1 $2')     // "programs|strategies|gaps" + to/for
+    // Add space between consecutive capital words stuck together (e.g., "StabilizeRetention" -> "Stabilize Retention")
+    // This handles cases where tags were removed but spacing wasn't added
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    // Convert <br/> and <br> tags to line breaks
+    .replace(/<br\s*\/?>/gi, '\n')
     // Normalize quotes
     .replace(/class=["']([^"']*?)["']/g, "class='$1'");
+  
+  // Decode HTML entities
+  cleanedText = decodeHtmlEntities(cleanedText);
 
   // Regex patterns for different span types
+  // Note: **text** markdown is now converted to <strong> earlier in processing
   const patterns = [
     { 
       regex: /<span class=['"]metric-value['"][^>]*>(.*?)<\/span>/g, 
@@ -194,6 +247,16 @@ function parseInlineElements(text: string): React.ReactNode {
       regex: /<span class=['"]trend-negative['"][^>]*>(.*?)<\/span>/g, 
       type: 'challenge' as const,
       className: 'font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded border border-red-200'
+    },
+    { 
+      regex: /<span class=['"]trend-positive['"][^>]*>(.*?)<\/span>/g, 
+      type: 'strength' as const,
+      className: 'font-bold text-green-900 bg-green-50 px-2 py-0.5 rounded border border-green-200'
+    },
+    { 
+      regex: /<span class=['"]trend-stable['"][^>]*>(.*?)<\/span>/g, 
+      type: 'metric' as const,
+      className: 'font-semibold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200'
     },
     { 
       regex: /<span class=['"]challenge-indicator['"][^>]*>(.*?)<\/span>/g, 
@@ -255,13 +318,23 @@ function parseInlineElements(text: string): React.ReactNode {
   matches.forEach(match => {
     // Add text before the match
     if (match.start > lastEnd) {
-      const beforeText = cleanedText.slice(lastEnd, match.start).trim();
-      if (beforeText) {
-        elements.push(
-          <span key={elementKey++} className="text-slate-700">
-            {beforeText}
-          </span>
-        );
+      const beforeText = cleanedText.slice(lastEnd, match.start);
+      // Only check if there's content (don't trim - we need to preserve spaces!)
+      if (beforeText && beforeText.replace(/\s+/g, '')) {
+        // Handle line breaks in text
+        const parts = beforeText.split('\n');
+        parts.forEach((part, idx) => {
+          if (part || idx < parts.length - 1) { // Keep even empty parts if not the last
+            elements.push(
+              <span key={elementKey++} className="text-slate-700">
+                {part}
+              </span>
+            );
+          }
+          if (idx < parts.length - 1) {
+            elements.push(<br key={elementKey++} />);
+          }
+        });
       }
     }
 
@@ -280,13 +353,23 @@ function parseInlineElements(text: string): React.ReactNode {
 
   // Add remaining text
   if (lastEnd < cleanedText.length) {
-    const remainingText = cleanedText.slice(lastEnd).trim();
-    if (remainingText) {
-      elements.push(
-        <span key={elementKey++} className="text-slate-700">
-          {remainingText}
-        </span>
-      );
+    const remainingText = cleanedText.slice(lastEnd);
+    // Only check if there's non-whitespace content (don't trim - preserve spaces!)
+    if (remainingText && remainingText.replace(/\s+/g, '')) {
+      // Handle line breaks in remaining text
+      const parts = remainingText.split('\n');
+      parts.forEach((part, idx) => {
+        if (part || idx < parts.length - 1) { // Keep even empty parts if not the last
+          elements.push(
+            <span key={elementKey++} className="text-slate-700">
+              {part}
+            </span>
+          );
+        }
+        if (idx < parts.length - 1) {
+          elements.push(<br key={elementKey++} />);
+        }
+      });
     }
   }
 

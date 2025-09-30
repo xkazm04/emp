@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
+        padding: 20px;
+        margin: 0;
+        background-color: #f5f7fa;
+        color: #2d3748;
+      }
+      
+      .container {
+        background-color: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        max-width: 480px;
+        margin: 0 auto;
+        border: 1px solid #e2e8f0;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a202c;
+        margin: 0 0 8px 0;
+      }
+      
+      .header p {
+        font-size: 14px;
+        color: #718096;
+        margin: 0;
+        line-height: 1.5;
+      }
+      
+      .form-group { 
+        margin-bottom: 20px; 
+      }
+      
+      label { 
+        display: block; 
+        margin-bottom: 6px; 
+        font-weight: 500;
+        color: #2d3748;
+        font-size: 14px;
+      }
+      
+      select { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        background-color: white;
+        color: #2d3748;
+        box-sizing: border-box;
+      }
+      
+      select:focus {
+        outline: none;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      }
+      
+      .checkbox-container { 
+        margin: 20px 0;
+      }
+      
+      .checkbox-group { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 12px; 
+        padding: 16px;
+        background-color: #f7fafc;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .checkbox-group:hover {
+        background-color: #edf2f7;
+        border-color: #cbd5e0;
+      }
+      
+      .checkbox-group.checked {
+        background-color: #ebf8ff;
+        border-color: #4299e1;
+      }
+      
+      .checkbox-group input[type="checkbox"] {
+        margin: 2px 0 0 0;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #4299e1;
+      }
+      
+      .checkbox-content {
+        flex: 1;
+      }
+      
+      .checkbox-content label {
+        margin: 0;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+        color: #2d3748;
+      }
+      
+      .checkbox-description {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+      
+      .quarter-selection-info {
+        background-color: #fefcbf;
+        border: 1px solid #f6e05e;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 10px 0;
+        font-size: 12px;
+        color: #744210;
+        display: none;
+      }
+      
+      .quarter-selection-info.show {
+        display: block;
+      }
+      
+      .info-panel {
+        background-color: #ebf8ff;
+        border: 1px solid #bee3f8;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px 0;
+      }
+      
+      .info-panel h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2b6cb0;
+        margin: 0 0 12px 0;
+      }
+      
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+      
+      .info-label {
+        color: #4a5568;
+        font-weight: 500;
+      }
+      
+      .info-value {
+        color: #2d3748;
+        font-weight: 500;
+        text-align: right;
+        max-width: 60%;
+        word-wrap: break-word;
+      }
+      
+      .progress-container {
+        display: none;
+        margin: 20px 0;
+        text-align: center;
+      }
+      
+      .progress-bar {
+        width: 100%;
+        height: 6px;
+        background-color: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background-color: #4299e1;
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+      
+      .progress-text {
+        font-size: 13px;
+        color: #4a5568;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      
+      .progress-time {
+        font-size: 11px;
+        color: #718096;
+      }
+      
+      .button-group { 
+        margin-top: 28px; 
+        display: flex; 
+        gap: 10px; 
+      }
+      
+      button { 
+        flex: 1;
+        padding: 12px 20px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      
+      .primary { 
+        background-color: #4299e1;
+        color: white;
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+      }
+      
+      .primary:hover:not(:disabled) {
+        background-color: #3182ce;
+        transform: translateY(-1px);
+      }
+      
+      .primary:disabled {
+        background-color: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .secondary { 
+        background-color: white;
+        color: #4a5568;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      }
+      
+      .secondary:hover {
+        background-color: #f7fafc;
+        border-color: #cbd5e0;
+      }
+      
+      .loading-dots {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: currentColor;
+        animation: loading-dots 1.4s infinite ease-in-out;
+        margin-left: 4px;
+      }
+      
+      .loading-dots:nth-child(1) { animation-delay: -0.32s; }
+      .loading-dots:nth-child(2) { animation-delay: -0.16s; }
+      
+      @keyframes loading-dots {
+        0%, 80%, 100% { 
+          opacity: 0.3;
+          transform: scale(0.8); 
+        }
+        40% { 
+          opacity: 1;
+          transform: scale(1); 
+        }
+      }
+      
+      @media (max-width: 500px) {
+        body {
+          padding: 12px;
+        }
+        
+        .container {
+          padding: 20px;
+        }
+        
+        .button-group {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form>
+        <div class="form-group">
+          <label for="quarter">Select reporting period</label>
+          <select id="quarter" required>
+            <option value="">Choose quarter...</option>
+            <? availableQuarters.forEach(function(quarter) { ?>
+              <option value="<?= quarter ?>"><?= quarter ?></option>
+            <? }); ?>
+          </select>
+        </div>
+        
+        <div class="checkbox-container">
+          <div class="checkbox-group" onclick="toggleCheckbox()">
+            <input type="checkbox" id="includeComparison" checked>
+            <div class="checkbox-content">
+              <label for="includeComparison">Include historical trend analysis</label>
+              <div class="checkbox-description">Export all available quarters for comprehensive comparison and longitudinal insights</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-panel">
+          <h3>Export Details</h3>
+          <div class="info-item">
+            <span class="info-label">Output location</span>
+            <span class="info-value">Same folder as spreadsheet</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Available quarters</span>
+            <span class="info-value"><?= availableQuarters.join(', ') ?></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">File format</span>
+            <span class="info-value">Structured JSON with AI insights</span>
+          </div>
+        </div>
+        
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-text">Processing survey data...</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-time" id="progressTime">Estimated time remaining: 3:00</div>
+        </div>
+        
+        <div class="button-group">
+          <button type="button" class="primary" id="exportBtn" onclick="exportData()">
+            Generate Export
+          </button>
+          <button type="button" class="secondary" onclick="google.script.host.close()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <script>
+      let progressTimer;
+      let startTime;
+      
+      function toggleCheckbox() {
+        const checkbox = document.getElementById('includeComparison');
+        checkbox.checked = !checkbox.checked;
+      }
+      
+      function exportData() {
+        const quarter = document.getElementById('quarter').value;
+        const includeComparison = document.getElementById('includeComparison').checked;
+        
+        if (!quarter) {
+          alert('Please select a reporting period');
+          return;
+        }
+        
+        showProgress();
+        
+        const params = {
+          selectedQuarter: quarter,
+          includeComparison: includeComparison,
+          allQuarters: <?= JSON.stringify(availableQuarters) ?>
+        };
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onError)
+          .executeJsonExportFromForm(params);
+      }
+      
+      function showProgress() {
+        const exportBtn = document.getElementById('exportBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressTime = document.getElementById('progressTime');
+        
+        exportBtn.innerHTML = 'Generating<span class="loading-dots"></span><span class="loading-dots"></span><span class="loading-dots"></span>';
+        exportBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        
+        startTime = Date.now();
+        let progress = 0;
+        const totalTime = 360; // 6 minutes in seconds
+        
+        progressTimer = setInterval(function() {
+          progress += 1;
+          const percentage = Math.min((progress / totalTime) * 100, 95);
+          const remaining = Math.max(totalTime - progress, 0);
+          
+          progressFill.style.width = percentage + '%';
+          
+          const minutes = Math.floor(remaining / 60);
+          const seconds = remaining % 60;
+          const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+          progressTime.textContent = 'Estimated time remaining: ' + minutes + ':' + paddedSeconds;
+          
+          if (progress >= totalTime) {
+            progressTime.textContent = 'Finalizing export...';
+          }
+        }, 1000);
+      }
+      
+      function hideProgress() {
+        const exportBtn = document.getElementById('exportBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        
+        if (progressTimer) {
+          clearInterval(progressTimer);
+        }
+        
+        exportBtn.textContent = 'Generate Export';
+        exportBtn.disabled = false;
+        progressContainer.style.display = 'none';
+        progressFill.style.width = '0%';
+      }
+      
+      function onSuccess(result) {
+        hideProgress();
+        
+        if (result.success) {
+          const actualTime = Math.round((Date.now() - startTime) / 1000);
+          const message = 'Export completed successfully!\n\n' +
+                         'File: ' + result.fileName + '\n' +
+                         'Location: Same folder as spreadsheet\n' +
+                         'Quarters included: ' + result.quartersIncluded + '\n' +
+                         'Processing time: ' + actualTime + 's\n\n' +
+                         'Your comprehensive analytics report is ready for analysis.';
+          alert(message);
+        } else {
+          alert('Export failed: ' + result.message);
+        }
+        google.script.host.close();
+      }
+      
+      function onError(error) {
+        hideProgress();
+        alert('Export failed: ' + error.message + '\n\nPlease try again or contact support if the issue persists.');
+      }
+      
+      // Auto-focus on quarter selection when dialog opens
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('quarter').focus();
+      });
+      
+      // Prevent form submission on Enter
+      document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+          e.preventDefault();
+          exportData();
+        }
+      });
+    </script>
+  </body>
+</html>

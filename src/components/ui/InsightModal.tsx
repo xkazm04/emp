@@ -128,8 +128,8 @@ export function InsightModal({ insight, isOpen, onClose, frequency }: InsightMod
               {/* Footer */}
               <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Scroll to view all {insight.sampleResponses?.length || 0} employee responses
+                  <div>
+                  
                   </div>
                   <button
                     onClick={onClose}

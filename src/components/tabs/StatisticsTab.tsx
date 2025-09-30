@@ -16,8 +16,9 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
   };
 
   const calculateChange = (current: number, previous: number) => {
-    if (!previous || previous === 0) return null;
-    return ((current - previous) / previous) * 100;
+    // Calculate percentage point difference, not percentage change
+    // Example: Q2=10%, Q3=15% -> difference is 5pp (15-10), not 50% ((15-10)/10*100)
+    return current - previous;
   };
 
   // Expected metrics based on Leadership tab keyStats

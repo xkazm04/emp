@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Survey Data Processor</title>
+    <style>
+        body {
+            font-family: 'Google Sans', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #202124;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #4285f4;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            margin: 0;
+            font-weight: 400;
+        }
+        
+        .form-section {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #3c4043;
+        }
+        
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #4285f4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #3367d6;
+        }
+        
+        .btn-primary:disabled {
+            background: #dadce0;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8f0fe;
+        }
+        
+        .status-section {
+            padding: 16px 20px;
+            border-top: 1px solid #e8eaed;
+            background: #f8f9fa;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ok {
+            background: #34a853;
+        }
+        
+        .status-warning {
+            background: #fbbc04;
+        }
+        
+        .status-error {
+            background: #ea4335;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e8eaed;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4285f4;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        
+        .message-success {
+            background: #e6f4ea;
+            color: #137333;
+            border: 1px solid #ceead6;
+        }
+        
+        .message-error {
+            background: #fce8e6;
+            color: #d93025;
+            border: 1px solid #f9dedc;
+        }
+        
+        .message-info {
+            background: #e8f0fe;
+            color: #1967d2;
+            border: 1px solid #d2e3fc;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .form-help {
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 4px;
+        }
+        
+        .validation-error {
+            color: #d93025;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">        
+        <form id="processingForm" class="form-section">
+            <div class="form-group">
+                <label for="quarter">Quarter *</label>
+                <select id="quarter" name="quarter" required>
+                    <option value="">Select Quarter</option>
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+                <div class="form-help">Select the quarter for this survey data</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="year">Year *</label>
+                <input type="number" id="year" name="year" min="2020" max="2030" required>
+                <div class="form-help">Enter the year (e.g., 2025)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="sourceSheetName">Source Sheet</label>
+                <select id="sourceSheetName" name="sourceSheetName">
+                    <option value="responses">responses (default)</option>
+                </select>
+                <div class="form-help">Sheet containing survey response data</div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" id="validateBtn" class="btn-secondary">
+                    Validate Data
+                </button>
+                <button type="submit" id="processBtn" class="btn-primary">
+                    Process Survey
+                </button>
+            </div>
+        </form>
+        
+        <div class="status-section">
+            <div class="status-item">
+                <span>
+                    <span class="status-indicator status-warning" id="apiStatus"></span>
+                    API Configuration
+                </span>
+                <span id="apiStatusText">Checking...</span>
+            </div>
+            
+            <div class="status-item">
+                <span>
+                    <span class="status-indicator status-warning" id="dataStatus"></span>
+                    Source Data
+                </span>
+                <span id="dataStatusText">Not validated</span>
+            </div>
+            
+            <div class="progress-bar hidden" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div id="messageArea"></div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+        
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAvailableSheets();
+            checkApiConfiguration();
+            setDefaultYear();
+            
+            // Form event handlers
+            document.getElementById('processingForm').addEventListener('submit', handleSubmit);
+            document.getElementById('validateBtn').addEventListener('click', validateData);
+            document.getElementById('sourceSheetName').addEventListener('change', onSheetChange);
+        });
+        
+        function setDefaultYear() {
+            const currentYear = new Date().getFullYear();
+            document.getElementById('year').value = currentYear;
+        }
+        
+        function loadAvailableSheets() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        const select = document.getElementById('sourceSheetName');
+                        select.innerHTML = '';
+                        
+                        result.sheets.forEach(sheet => {
+                            const option = document.createElement('option');
+                            option.value = sheet.name;
+                            option.textContent = sheet.name + (sheet.isDefault ? ' (default)' : '');
+                            if (sheet.isDefault) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('Failed to load available sheets: ' + error.message, 'error');
+                })
+                .getAvailableSheets();
+        }
+        
+        function checkApiConfiguration() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    const statusIndicator = document.getElementById('apiStatus');
+                    const statusText = document.getElementById('apiStatusText');
+                    
+                    if (result.configured) {
+                        statusIndicator.className = 'status-indicator status-ok';
+                        statusText.textContent = 'Configured';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-error';
+                        statusText.textContent = 'Not configured';
+                        showMessage('API key not configured. Please set it in Settings menu.', 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    const statusIndicator = document.getElementById('apiStatus');
+                    const statusText = document.getElementById('apiStatusText');
+                    statusIndicator.className = 'status-indicator status-error';
+                    statusText.textContent = 'Error';
+                })
+                .validateApiConfiguration();
+        }
+        
+        function onSheetChange() {
+            // Reset data validation status when sheet changes
+            const statusIndicator = document.getElementById('dataStatus');
+            const statusText = document.getElementById('dataStatusText');
+            statusIndicator.className = 'status-indicator status-warning';
+            statusText.textContent = 'Not validated';
+        }
+        
+        function validateData() {
+            const sheetName = document.getElementById('sourceSheetName').value;
+            
+            if (!sheetName) {
+                showMessage('Please select a source sheet first.', 'error');
+                return;
+            }
+            
+            const statusIndicator = document.getElementById('dataStatus');
+            const statusText = document.getElementById('dataStatusText');
+            
+            statusIndicator.className = 'status-indicator status-warning';
+            statusText.textContent = 'Validating...';
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        statusIndicator.className = 'status-indicator status-ok';
+                        statusText.textContent = 'Valid';
+                        showMessage(
+                            `✅ ${result.message}<br>` +
+                            `📊 Found ${result.details.responseCount} responses in ${result.details.columnCount} columns`,
+                            'success'
+                        );
+                    } else {
+                        statusIndicator.className = 'status-indicator status-error';
+                        statusText.textContent = 'Invalid';
+                        showMessage(
+                            '❌ ' + result.message + 
+                            (result.suggestion ? '<br>💡 ' + result.suggestion : ''),
+                            'error'
+                        );
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    statusIndicator.className = 'status-indicator status-error';
+                    statusText.textContent = 'Error';
+                    showMessage('Validation failed: ' + error.message, 'error');
+                })
+                .validateSourceSheet(sheetName);
+        }
+        
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (isProcessing) {
+                return;
+            }
+            
+            // Validate form
+            const quarter = document.getElementById('quarter').value;
+            const year = document.getElementById('year').value;
+            const sourceSheetName = document.getElementById('sourceSheetName').value;
+            
+            if (!quarter || !year) {
+                showMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+            
+            if (year < 2020 || year > 2030) {
+                showMessage('Please enter a valid year between 2020 and 2030.', 'error');
+                return;
+            }
+            
+            // Check API configuration
+            const apiStatus = document.getElementById('apiStatus').className;
+            if (!apiStatus.includes('status-ok')) {
+                showMessage('API is not configured. Please set your API key in Settings.', 'error');
+                return;
+            }
+            
+            startProcessing();
+            
+            const formData = {
+                quarter: quarter,
+                year: parseInt(year),
+                sourceSheetName: sourceSheetName
+            };
+            
+            google.script.run
+                .withSuccessHandler(handleProcessingSuccess)
+                .withFailureHandler(handleProcessingError)
+                .processFromUI(formData);
+        }
+        
+        function startProcessing() {
+            isProcessing = true;
+            
+            // Update UI
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('processBtn').textContent = 'Processing...';
+            document.getElementById('validateBtn').disabled = true;
+            
+            // Show progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.classList.remove('hidden');
+            
+            // Animate progress bar
+            animateProgress();
+            
+            showMessage('🚀 Processing survey data with AI...', 'info');
+        }
+        
+        function stopProcessing() {
+            isProcessing = false;
+            
+            // Reset UI
+            document.getElementById('processBtn').disabled = false;
+            document.getElementById('processBtn').textContent = 'Process Survey';
+            document.getElementById('validateBtn').disabled = false;
+            
+            // Hide progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.classList.add('hidden');
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = '0%';
+        }
+        
+        function animateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            let width = 0;
+            
+            const interval = setInterval(function() {
+                if (!isProcessing) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                width += Math.random() * 2;
+                if (width > 90) width = 90; // Don't complete until actually done
+                
+                progressFill.style.width = width + '%';
+            }, 500);
+        }
+        
+        function handleProcessingSuccess(result) {
+            stopProcessing();
+            
+            if (result.success) {
+                const progressFill = document.getElementById('progressFill');
+                progressFill.style.width = '100%';
+                
+                setTimeout(function() {
+                    document.getElementById('progressBar').classList.add('hidden');
+                    progressFill.style.width = '0%';
+                }, 1000);
+                
+                showMessage(
+                    `🎉 ${result.message}<br>` +
+                    `📈 Created:<br>` +
+                    `• ${result.details.metrics || 0} metrics<br>` +
+                    `• ${result.details.segmentMetrics || 0} segment metrics<br>` +
+                    `• ${result.details.qualitativeInsights || 0} qualitative insights<br>` +
+                    `• ${result.details.leaderInsights || 0} leader insights`,
+                    'success'
+                );
+                
+                // Update data status
+                const statusIndicator = document.getElementById('dataStatus');
+                const statusText = document.getElementById('dataStatusText');
+                statusIndicator.className = 'status-indicator status-ok';
+                statusText.textContent = 'Processed';
+                
+            } else {
+                showMessage('❌ Processing failed: ' + result.message, 'error');
+            }
+        }
+        
+        function handleProcessingError(error) {
+            stopProcessing();
+            showMessage('❌ Processing failed: ' + error.message, 'error');
+        }
+        
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.innerHTML = message;
+            
+            // Clear previous messages
+            messageArea.innerHTML = '';
+            messageArea.appendChild(messageDiv);
+            
+            // Auto-hide success messages after 10 seconds
+            if (type === 'success') {
+                setTimeout(function() {
+                    if (messageDiv.parentNode) {
+                        messageDiv.style.opacity = '0';
+                        setTimeout(function() {
+                            if (messageDiv.parentNode) {
+                                messageDiv.parentNode.removeChild(messageDiv);
+                            }
+                        }, 300);
+                    }
+                }, 10000);
+            }
+        }
+        
+        // Test API connection function
+        function testConnection() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showMessage('✅ API connection test successful!', 'success');
+                    } else {
+                        showMessage('❌ API connection test failed: ' + result.message, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('❌ API connection test failed: ' + error.message, 'error');
+                })
+                .testApiConnection();
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl/Cmd + Enter to submit
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                if (!isProcessing) {
+                    handleSubmit(event);
+                }
+            }
+            
+            // Escape to close dialog
+            if (event.key === 'Escape') {
+                google.script.host.close();
+            }
+        });
+        
+        // Add tooltip functionality
+        function addTooltip(element, text) {
+            element.title = text;
+        }
+        
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            addTooltip(document.getElementById('quarter'), 'Select the fiscal quarter for this survey data');
+            addTooltip(document.getElementById('year'), 'Enter the year when the survey was conducted');
+            addTooltip(document.getElementById('sourceSheetName'), 'Choose the sheet that contains your survey response data');
+        });
+        
+        // Form field validation
+        function validateField(field) {
+            const value = field.value.trim();
+            let isValid = true;
+            let errorMessage = '';
+            
+            switch (field.id) {
+                case 'quarter':
+                    isValid = ['Q1', 'Q2', 'Q3', 'Q4'].includes(value);
+                    errorMessage = 'Please select a valid quarter';
+                    break;
+                    
+                case 'year':
+                    const year = parseInt(value);
+                    isValid = year >= 2020 && year <= 2030;
+                    errorMessage = 'Year must be between 2020 and 2030';
+                    break;
+            }
+            
+            // Remove existing error
+            const existingError = field.parentNode.querySelector('.validation-error');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error if invalid
+            if (!isValid && value) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-error';
+                errorDiv.textContent = errorMessage;
+                field.parentNode.appendChild(errorDiv);
+            }
+            
+            return isValid;
+        }
+        
+        // Add real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const fieldsToValidate = ['quarter', 'year'];
+            fieldsToValidate.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('blur', function() {
+                    validateField(this);
+                });
+                field.addEventListener('change', function() {
+                    validateField(this);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

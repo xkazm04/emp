@@ -37,20 +37,29 @@ export function InsightsTab({ data }: InsightsTabProps) {
     );
   }
 
+  // Get the most recent quarter key from timeseries data
+  const getMostRecentQuarter = (insight: QualitativeInsight) => {
+    if (!insight.timeseries) return null;
+    const quarters = Object.keys(insight.timeseries);
+    // Return the first quarter key (assumed to be most recent)
+    return quarters.length > 0 ? quarters[0] : null;
+  };
+
+  // Get frequency for an insight (using the most recent quarter)
+  const getInsightFrequency = (insight: QualitativeInsight) => {
+    const quarter = getMostRecentQuarter(insight);
+    return quarter && insight.timeseries ? insight.timeseries[quarter]?.frequency || 0 : 0;
+  };
+
   // Flatten and prioritize all insights
   const allInsights = data.qualitativeInsights || [];
   const topInsights = allInsights
     .sort((a, b) => {
-      const freqA = a.timeseries?.['Q2 2025']?.frequency || 0;
-      const freqB = b.timeseries?.['Q2 2025']?.frequency || 0;
+      const freqA = getInsightFrequency(a);
+      const freqB = getInsightFrequency(b);
       return freqB - freqA; // Sort by frequency desc
     })
     .slice(0, 8); // Top 8 insights only
-
-  // Get frequency for an insight
-  const getInsightFrequency = (insight: typeof data.qualitativeInsights[0]) => {
-    return insight.timeseries?.['Q2 2025']?.frequency || 0;
-  };
 
   // Get category color
   const getCategoryColor = (category: string) => {
@@ -145,7 +154,6 @@ export function InsightsTab({ data }: InsightsTabProps) {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                           </svg>
-                          <span>{insight.sampleResponses?.length || 0} responses</span>
                         </div>
                         <div className="text-xs text-gray-400 uppercase tracking-wide">
                           Click to view

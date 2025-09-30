@@ -88,17 +88,38 @@ export function OverviewTab({ data }: OverviewTabProps) {
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                 {data.executiveSummary.keyFindings.map((finding, index) => {
-                  const titleMatch = finding.match(/<b>(.*?)<\/b>/);
-                  const title = titleMatch ? titleMatch[1] : `Finding #${index + 1}`;
-                  const contentWithoutTitle = titleMatch ? 
-                    finding.replace(/<b>.*?<\/b>\s*/, '') : 
-                    finding;
+                  // Helper function to strip HTML tags from text
+                  const stripHtmlTags = (html: string): string => {
+                    return html.replace(/<[^>]*>/g, '').trim();
+                  };
+                  
+                  // Try to extract title from various formats
+                  const boldMatch = finding.match(/<b>(.*?)<\/b>/);
+                  const strongMatch = finding.match(/<strong>(.*?)<\/strong>/);
+                  const starMatch = finding.match(/\*\*([^*]+)\*\*/);
+                  
+                  let title = `Finding #${index + 1}`;
+                  let contentWithoutTitle = finding;
+                  
+                  if (boldMatch) {
+                    title = stripHtmlTags(boldMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
+                    contentWithoutTitle = finding.replace(/<b>.*?<\/b>\s*/, '');
+                  } else if (strongMatch) {
+                    title = stripHtmlTags(strongMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
+                    contentWithoutTitle = finding.replace(/<strong>.*?<\/strong>\s*/, '');
+                  } else if (starMatch) {
+                    title = stripHtmlTags(starMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
+                    contentWithoutTitle = finding.replace(/\*\*[^*]+\*\*\s*/, '');
+                  }
+                  
+                  // Additional cleanup: remove any remaining stars and HTML tags from title
+                  title = stripHtmlTags(title.replace(/\*\*/g, '')).trim();
                   
                   return (
                     <div key={index} className="group">
                       <div className="border-l-2 border-green-500 pl-6 transition-all duration-300">
                         <div className="flex items-center gap-3 mb-3">
-                            <h4 className="text-green-600 font-mono text-lg">{title}</h4>
+                            <h4 className="text-green-600 font-bold text-lg">{title}</h4>
                         </div>
                         <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed text-sm">
                           {parseHtmlToReact(contentWithoutTitle)}
@@ -251,14 +272,6 @@ export function OverviewTab({ data }: OverviewTabProps) {
                             {currentValue && (
                               <span className="px-3 py-1 rounded-full text-sm font-medium border bg-white text-slate-700">
                                 {Math.round(currentValue)}%
-                              </span>
-                            )}
-                            {area.priority && (
-                              <span className={`px-2 py-1 text-xs rounded-full font-medium uppercase tracking-wide
-                                ${area.priority === 'high' ? 'bg-red-100 border border-red-300 text-slate-700' : 
-                                  area.priority === 'medium' ? 'bg-yellow-100 border border-yellow-300 text-slate-700' : 
-                                  'bg-blue-100 border border-blue-300 text-slate-700'}`}>
-                                {area.priority}
                               </span>
                             )}
                           </div>

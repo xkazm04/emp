@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background-color: #4285f4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3367d6;
+        }
+        
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 13px;
+        }
+        
+        .error {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .processing {
+            display: none;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="info-box">
+            <p><strong>Quantitative Metrics Processing</strong><br>
+            This will calculate metrics from survey responses without LLM analysis. Faster processing, no API key required.</p>
+        </div>
+        
+        <form id="metricsForm">
+            <div class="form-group">
+                <label for="quarter">Quarter:</label>
+                <select id="quarter" name="quarter" required>
+                    <option value="">Select Quarter</option>
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" min="2020" max="2030" value="2025" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sourceSheet">Source Sheet Name:</label>
+                <input type="text" id="sourceSheet" name="sourceSheet" value="responses" placeholder="responses">
+            </div>
+            
+            <div class="error" id="errorMessage"></div>
+            
+            <div class="button-container">
+                <button type="button" class="btn btn-secondary" onclick="google.script.host.close()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="processBtn">Process Metrics</button>
+            </div>
+        </form>
+        
+        <div class="processing" id="processingMessage">
+            <p>Processing metrics... Please wait.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('metricsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const quarter = document.getElementById('quarter').value;
+            const year = parseInt(document.getElementById('year').value);
+            const sourceSheet = document.getElementById('sourceSheet').value || 'responses';
+            
+            // Validation
+            if (!quarter || !year) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            // Show processing state
+            document.getElementById('metricsForm').style.display = 'none';
+            document.getElementById('processingMessage').style.display = 'block';
+            
+            const params = {
+                quarter: quarter,
+                year: year,
+                sourceSheetName: sourceSheet
+            };
+            
+            // Call server-side function
+            google.script.run
+                .withSuccessHandler(handleSuccess)
+                .withFailureHandler(handleFailure)
+                .processMetricsOnly(params);
+        });
+        
+        function handleSuccess(result) {
+            document.getElementById('processingMessage').style.display = 'none';
+            
+            if (result.success) {
+                alert('Success!\n\n' + result.message);
+                google.script.host.close();
+            } else {
+                showError(result.message);
+                document.getElementById('metricsForm').style.display = 'block';
+            }
+        }
+        
+        function handleFailure(error) {
+            document.getElementById('processingMessage').style.display = 'none';
+            document.getElementById('metricsForm').style.display = 'block';
+            showError('Processing failed: ' + error.message);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
