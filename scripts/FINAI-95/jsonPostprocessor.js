@@ -394,20 +394,39 @@ Overall Trend Direction: ${trendDirection}`;
       'recognition': 'Recognition'
     };
     
+    // Check if this is a new leader (no previous quarter data)
+    const hasAnyPreviousData = Object.values(payload.keyStats).some(data => 
+      data.values && data.values[1] !== null && data.values[1] !== undefined
+    );
+    
     Object.entries(payload.keyStats).forEach(([metric, data]) => {
       const current = data.values?.[0];
       const previous = data.values?.[1];
-      const trend = previous ? (current - previous > 0 ? '↑' : current - previous < 0 ? '↓' : '→') : '';
-      const change = previous ? ` (${trend}${Math.abs(current - previous).toFixed(1)}pp)` : '';
+      
+      // Only show trends if we have valid previous data AND this isn't a new leader
+      let trend = '';
+      let change = '';
+      if (previous !== null && previous !== undefined && hasAnyPreviousData) {
+        trend = current - previous > 0 ? '↑' : current - previous < 0 ? '↓' : '→';
+        change = ` (${trend}${Math.abs(current - previous).toFixed(1)}pp)`;
+      } else if (!hasAnyPreviousData) {
+        change = ' (New Leader - No Previous Data)';
+      }
       
       const humanReadableName = metricNameMap[metric] || metric;
       context += `- ${humanReadableName}: ${current}${data.unit || ''}${change}\n`;
       
-      // Include top performer data if available
-      if (data.topPerformerValues && data.topPerformerValues[0] !== null) {
-        context += `  Top Performers: ${data.topPerformerValues[0]}${data.unit || ''}\n`;
-      }
+      // Include top performer data if available (but remove this section per Issue #2)
+      // Commenting out top performer display per requirement #2
+      // if (data.topPerformerValues && data.topPerformerValues[0] !== null) {
+      //   context += `  Top Performers: ${data.topPerformerValues[0]}${data.unit || ''}\n`;
+      // }
     });
+    
+    // Add note for new leaders
+    if (!hasAnyPreviousData) {
+      context += '\nNOTE: This leader is new to the reporting period. Trends will be available starting next quarter.\n';
+    }
     
     return context;
   },

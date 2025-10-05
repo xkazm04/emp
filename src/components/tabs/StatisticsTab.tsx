@@ -58,9 +58,6 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-800">Performance Statistics</h2>
-        <div className="text-sm text-slate-500">
-          Comparing overall vs. top performer metrics
-        </div>
       </div>
 
       {/* Metrics Alignment Notice */}
@@ -96,12 +93,6 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 <th className="px-6 py-4 text-center  font-medium text-slate-500 uppercase tracking-wider">
                   Overall
                 </th>
-                <th className="px-6 py-4 text-center  font-medium text-slate-500 uppercase tracking-wider">
-                  Top Performers
-                </th>
-                <th className="px-6 py-4 text-center  font-medium text-slate-500 uppercase tracking-wider">
-                  Gap
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -115,23 +106,17 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 .map((metric, index) => {
                 const overallCurrent = metric.overall?.values?.[0];
                 const overallPrevious = metric.overall?.values?.[1];
-                const topPerformersCurrent = metric.topPerformers?.values?.[0];
-                const topPerformersPrevious = metric.topPerformers?.values?.[1];
+                // Removed topPerformers data per requirement #2
                 
                 const overallChange = overallCurrent && overallPrevious 
                   ? calculateChange(overallCurrent, overallPrevious) 
                   : null;
                 
-                const topPerformersChange = topPerformersCurrent && topPerformersPrevious 
-                  ? calculateChange(topPerformersCurrent, topPerformersPrevious) 
-                  : null;
-
-                const gap = overallCurrent && topPerformersCurrent 
-                  ? topPerformersCurrent - overallCurrent 
-                  : null;
+                // Removed topPerformersChange per requirement #2
+                // Removed gap calculation per requirement #2
 
                 const overallLevel = overallCurrent ? getPerformanceLevel(overallCurrent) : 'medium';
-                const topPerformersLevel = topPerformersCurrent ? getPerformanceLevel(topPerformersCurrent) : 'medium';
+                // Removed topPerformersLevel per requirement #2
 
                 return (
                   <tr key={`leadership-${index}`} className="hover:bg-slate-50 transition-colors border-l-4 border-l-blue-100">
@@ -156,33 +141,6 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                         <span className="text-slate-400">N/A</span>
                       )}
                     </td>
-                    
-                    {/* Top Performers Column */}
-                    <td className="px-6 py-4 text-center">
-                      {topPerformersCurrent ? (
-                        <StatisticsCard
-                          value={topPerformersCurrent}
-                          change={topPerformersChange}
-                          level={topPerformersLevel}
-                          type="topPerformers"
-                        />
-                      ) : (
-                        <span className="text-slate-400">N/A</span>
-                      )}
-                    </td>
-                    
-                    {/* Gap Column */}
-                    <td className="px-6 py-4 text-center">
-                      {gap !== null ? (
-                        <StatisticsCard
-                          value={gap}
-                          level={overallLevel}
-                          type="gap"
-                        />
-                      ) : (
-                        <span className="text-slate-400">N/A</span>
-                      )}
-                    </td>
                   </tr>
                 );
               })}
@@ -193,23 +151,17 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                 .map((metric, index) => {
                 const overallCurrent = metric.overall?.values?.[0];
                 const overallPrevious = metric.overall?.values?.[1];
-                const topPerformersCurrent = metric.topPerformers?.values?.[0];
-                const topPerformersPrevious = metric.topPerformers?.values?.[1];
+                // Removed topPerformers data per requirement #2
                 
                 const overallChange = overallCurrent && overallPrevious 
                   ? calculateChange(overallCurrent, overallPrevious) 
                   : null;
                 
-                const topPerformersChange = topPerformersCurrent && topPerformersPrevious 
-                  ? calculateChange(topPerformersCurrent, topPerformersPrevious) 
-                  : null;
-
-                const gap = overallCurrent && topPerformersCurrent 
-                  ? topPerformersCurrent - overallCurrent 
-                  : null;
+                // Removed topPerformersChange per requirement #2
+                // Removed gap calculation per requirement #2
 
                 const overallLevel = overallCurrent ? getPerformanceLevel(overallCurrent) : 'medium';
-                const topPerformersLevel = topPerformersCurrent ? getPerformanceLevel(topPerformersCurrent) : 'medium';
+                // Removed topPerformersLevel per requirement #2
 
                 return (
                   <tr key={`other-${index}`} className="hover:bg-slate-50 transition-colors">
@@ -225,33 +177,6 @@ export function StatisticsTab({ data }: StatisticsTabProps) {
                           change={overallChange}
                           level={overallLevel}
                           type="overall"
-                        />
-                      ) : (
-                        <span className="text-slate-400">N/A</span>
-                      )}
-                    </td>
-                    
-                    {/* Top Performers Column */}
-                    <td className="px-6 py-4 text-center">
-                      {topPerformersCurrent ? (
-                        <StatisticsCard
-                          value={topPerformersCurrent}
-                          change={topPerformersChange}
-                          level={topPerformersLevel}
-                          type="topPerformers"
-                        />
-                      ) : (
-                        <span className="text-slate-400">N/A</span>
-                      )}
-                    </td>
-                    
-                    {/* Gap Column */}
-                    <td className="px-6 py-4 text-center">
-                      {gap !== null ? (
-                        <StatisticsCard
-                          value={gap}
-                          level={overallLevel}
-                          type="gap"
                         />
                       ) : (
                         <span className="text-slate-400">N/A</span>
