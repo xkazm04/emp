@@ -56,22 +56,22 @@ export interface LeaderKeyStats {
   leadershipConfidence: {
     unit: string;
     values: number[];
-    topPerformerValues: number[];
+    // Removed topPerformerValues per requirement #2
   };
   tools: {
     unit: string;
     values: number[];
-    topPerformerValues: number[];
+    // Removed topPerformerValues per requirement #2
   };
   empowerment: {
     unit: string;
     values: number[];
-    topPerformerValues: number[];
+    // Removed topPerformerValues per requirement #2
   };
   retention: {
     unit: string;
     values: number[];
-    topPerformerValues: number[];
+    // Removed topPerformerValues per requirement #2
   };
 }
 

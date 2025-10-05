@@ -30,11 +30,68 @@ const SIZES = {
   body: 20, // 10pt for normal text
 };
 
-// Helper function to parse HTML content to plain text with basic formatting
+// Helper function to parse HTML content to plain text with enhanced formatting
+// UPDATED: Applied improvements from htmlParser.tsx for better HTML entity handling and spacing
 function parseHtmlToText(html: string): string {
   if (!html) return '';
   
-  return html
+  // Decode HTML entities helper function (from htmlParser.tsx)
+  const decodeHtmlEntities = (str: string): string => {
+    const entityMap: Record<string, string> = {
+      '&darr;': '↓',
+      '&uarr;': '↑',
+      '&rarr;': '→',
+      '&larr;': '←',
+      '&nbsp;': ' ',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&mdash;': '—',
+      '&ndash;': '–',
+    };
+    
+    let decoded = str;
+    Object.keys(entityMap).forEach(entity => {
+      decoded = decoded.replace(new RegExp(entity, 'g'), entityMap[entity]);
+    });
+    
+    return decoded;
+  };
+
+  // Clean up malformed HTML with improved regex patterns from htmlParser.tsx
+  const cleanedText = html
+    // Fix duplicate metric values like "55%55%)" -> "55%)"
+    .replace(/(\d+(?:\.\d+)?%)\1\)/g, '$1)')
+    // Fix duplicate closing spans
+    .replace(/<\/span>\s*<\/span>/g, '</span>')
+    // Fix challenge-indicator spans with nested metric-value spans
+    .replace(/(<span class=['"]challenge-indicator['"][^>]*>[^<]*\([^<]*)<span class=['"]metric-value['"][^>]*>([^<]*)<\/span>([^<]*)<\/span>/g, '$1<span class="metric-value">$2</span>$3</span>')
+    // Convert **text** to <strong>text</strong> while preserving spaces
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // SPACING FIXES:
+    // Add space after closing parentheses if followed by capital letter or tag
+    .replace(/(\))([A-Z<])/g, '$1 $2')
+    // Add space after punctuation if followed by letter/tag with no space
+    .replace(/([:\.,;!?])(<span[^>]*>|<strong>|<b>|[A-Z])/g, '$1 $2')
+    // Add space before opening tags if preceded by letter/digit
+    .replace(/([a-zA-Z0-9])(<span[^>]*>|<strong>|<b>)/g, '$1 $2')
+    // Add space after closing tags if followed by letter/digit
+    .replace(/(<\/span>|<\/strong>|<\/b>)([a-zA-Z0-9])/g, '$1 $2')
+    // Add space between concatenated words at word boundaries
+    .replace(/([a-z]{4,}s)(with|from)\b/gi, '$1 $2')
+    .replace(/([a-z]{4,}y)(from|to)\b/gi, '$1 $2')
+    .replace(/([a-z]{4,}s)(to|for)\b/gi, '$1 $2')
+    // Add space between consecutive capital words
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    // Convert line breaks
+    .replace(/<br\s*\/?>/gi, '\n')
+    // Normalize quotes
+    .replace(/class=["']([^"']*?)["']/g, "class='$1'");
+  
+  // Apply standard HTML parsing with entity decoding
+  const parsed = cleanedText
     .replace(/<div[^>]*>/g, '\n')
     .replace(/<\/div>/g, '')
     .replace(/<p[^>]*>/g, '\n')
@@ -46,16 +103,17 @@ function parseHtmlToText(html: string): string {
     .replace(/<span[^>]*class=['"]employee-voice['"][^>]*>(.*?)<\/span>/g, '$1')
     .replace(/<span[^>]*class=['"]challenge-indicator['"][^>]*>(.*?)<\/span>/g, '$1')
     .replace(/<span[^>]*class=['"]strength-indicator['"][^>]*>(.*?)<\/span>/g, '$1')
+    .replace(/<span[^>]*class=['"]trend-negative['"][^>]*>(.*?)<\/span>/g, '$1')
+    .replace(/<span[^>]*class=['"]trend-positive['"][^>]*>(.*?)<\/span>/g, '$1')
+    .replace(/<span[^>]*class=['"]trend-stable['"][^>]*>(.*?)<\/span>/g, '$1')
+    .replace(/<span[^>]*class=['"]priority-high['"][^>]*>(.*?)<\/span>/g, '$1')
     .replace(/<span[^>]*>(.*?)<\/span>/g, '$1')
     .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
     .replace(/\n\s*\n/g, '\n')
     .trim();
+  
+  // Apply HTML entity decoding from htmlParser.tsx
+  return decodeHtmlEntities(parsed);
 }
 
 // Create title page
@@ -340,36 +398,7 @@ function createPerformanceMetricsTable(data: SurveyData): (Paragraph | Table)[] 
                 left: 300,
                 right: 300,
               },
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: 'Top Performers',
-                      bold: true,
-                      color: 'FFFFFF',
-                      size: SIZES.body,
-                      font: FONTS.body,
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              shading: {
-                fill: COLORS.tableHeaderGreen,
-              },
-              width: {
-                size: 20,
-                type: WidthType.PERCENTAGE,
-              },
-              margins: {
-                top: 200,
-                bottom: 200,
-                left: 300,
-                right: 300,
-              },
-            }),
+            })
           ],
         }),
         // Data rows with alternating colors and proper styling
@@ -430,35 +459,7 @@ function createPerformanceMetricsTable(data: SurveyData): (Paragraph | Table)[] 
                   left: 300,
                   right: 300,
                 },
-              }),
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: `${Math.round(metric.topPerformers?.values?.[0] || 0)}%`,
-                        size: SIZES.body,
-                        color: COLORS.success,
-                        font: FONTS.body,
-                      }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                  }),
-                ],
-                shading: index % 2 === 0 ? {
-                  fill: 'F8F9FA',
-                } : undefined,
-                width: {
-                  size: 20,
-                  type: WidthType.PERCENTAGE,
-                },
-                margins: {
-                  top: 150,
-                  bottom: 150,
-                  left: 300,
-                  right: 300,
-                },
-              }),
+              })
             ],
           })
         ),
@@ -594,7 +595,7 @@ function createLeaderStatsTable(leader: Leader): Table {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: 'Current Value',
+                  text: 'Percentage score',
                   bold: true,
                   color: 'FFFFFF',
                   size: SIZES.body,
@@ -617,36 +618,7 @@ function createLeaderStatsTable(leader: Leader): Table {
             left: 300,
             right: 300,
           },
-        }),
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: 'Top Performers',
-                  bold: true,
-                  color: 'FFFFFF',
-                  size: SIZES.body,
-                  font: FONTS.body,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-            }),
-          ],
-          shading: {
-            fill: COLORS.tableHeaderGreen,
-          },
-          width: {
-            size: 25,
-            type: WidthType.PERCENTAGE,
-          },
-          margins: {
-            top: 200,
-            bottom: 200,
-            left: 300,
-            right: 300,
-          },
-        }),
+        })
       ],
     }),
   ];
@@ -655,7 +627,6 @@ function createLeaderStatsTable(leader: Leader): Table {
   if (leader.keyStats) {
     Object.entries(leader.keyStats).forEach(([statName, statData], index) => {
       const currentValue = statData.values[0] || 0;
-      const topPerformerValue = statData.topPerformerValues[0] || 0;
       const formattedStatName = statName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
       
       rows.push(
@@ -714,35 +685,7 @@ function createLeaderStatsTable(leader: Leader): Table {
                 left: 300,
                 right: 300,
               },
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `${topPerformerValue.toFixed(1)}${statData.unit}`,
-                      size: SIZES.body,
-                      font: FONTS.body,
-                      color: COLORS.success,
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                }),
-              ],
-              shading: index % 2 === 0 ? {
-                fill: 'F8F9FA',
-              } : undefined,
-              width: {
-                size: 25,
-                type: WidthType.PERCENTAGE,
-              },
-              margins: {
-                top: 150,
-                bottom: 150,
-                left: 300,
-                right: 300,
-              },
-            }),
+            })
           ],
         })
       );
@@ -755,7 +698,7 @@ function createLeaderStatsTable(leader: Leader): Table {
       size: 100,
       type: WidthType.PERCENTAGE,
     },
-    columnWidths: [5000, 2500, 2500], // Metric (50%), Current Value (25%), Top Performers (25%)
+    columnWidths: [5000, 2500], // Metric (50%), Current Value (25%)
     margins: {
       top: 100,
       bottom: 100,

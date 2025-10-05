@@ -68,10 +68,20 @@ export function LeaderExpandableRow({ leader, isExpanded }: LeaderExpandableRowP
 
                             return (
                               <div key={index} className="bg-white border border-slate-200 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="flex relative items-center justify-between mb-3">
                                   <h5 className="text-sm font-medium text-slate-700">
                                     {metric.metricName}
                                   </h5>
+                                  <div className="flex absolute -bottom-1 items-center gap-2">
+                                   {currentValue && isPercentageMetric && (
+                                    <ScoreBar 
+                                      score={currentValue} 
+                                      showLabel={false} 
+                                      size="sm"
+                                      className="w-full"
+                                    />
+                                  )}
+                                  </div>
                                   {change !== null && (
                                     <span className={`text-xs px-2 py-1 rounded-full font-medium
                                     ${change > 0 ? 'bg-green-100 text-slate-700' :
@@ -86,21 +96,6 @@ export function LeaderExpandableRow({ leader, isExpanded }: LeaderExpandableRowP
                                   <div className="text-2xl font-bold text-slate-900">
                                     {currentValue ? (isPercentageMetric ? `${Math.round(currentValue)}%` : currentValue.toFixed(1)) : 'N/A'}
                                   </div>
-
-                                  {currentValue && isPercentageMetric && (
-                                    <ScoreBar 
-                                      score={currentValue} 
-                                      showLabel={false} 
-                                      size="sm"
-                                      className="w-full"
-                                    />
-                                  )}
-
-                                  {previousValue && (
-                                    <div className="text-xs text-slate-500">
-                                      Previous: {isPercentageMetric ? `${Math.round(previousValue)}%` : previousValue.toFixed(1)}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
