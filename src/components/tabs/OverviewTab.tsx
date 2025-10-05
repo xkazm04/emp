@@ -78,60 +78,6 @@ export function OverviewTab({ data }: OverviewTabProps) {
           </div>
         )}
 
-        {/* Key Findings - Clean Terminal Style */}
-        {data.executiveSummary?.keyFindings && data.executiveSummary.keyFindings.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center gap-4 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800">Key Discoveries</h2>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                {data.executiveSummary.keyFindings.map((finding, index) => {
-                  // Helper function to strip HTML tags from text
-                  const stripHtmlTags = (html: string): string => {
-                    return html.replace(/<[^>]*>/g, '').trim();
-                  };
-                  
-                  // Try to extract title from various formats
-                  const boldMatch = finding.match(/<b>(.*?)<\/b>/);
-                  const strongMatch = finding.match(/<strong>(.*?)<\/strong>/);
-                  const starMatch = finding.match(/\*\*([^*]+)\*\*/);
-                  
-                  let title = `Finding #${index + 1}`;
-                  let contentWithoutTitle = finding;
-                  
-                  if (boldMatch) {
-                    title = stripHtmlTags(boldMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
-                    contentWithoutTitle = finding.replace(/<b>.*?<\/b>\s*/, '');
-                  } else if (strongMatch) {
-                    title = stripHtmlTags(strongMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
-                    contentWithoutTitle = finding.replace(/<strong>.*?<\/strong>\s*/, '');
-                  } else if (starMatch) {
-                    title = stripHtmlTags(starMatch[1].replace(/\*\*/g, '')); // Remove HTML tags and stars
-                    contentWithoutTitle = finding.replace(/\*\*[^*]+\*\*\s*/, '');
-                  }
-                  
-                  // Additional cleanup: remove any remaining stars and HTML tags from title
-                  title = stripHtmlTags(title.replace(/\*\*/g, '')).trim();
-                  
-                  return (
-                    <div key={index} className="group">
-                      <div className="border-l-2 border-green-500 pl-6 transition-all duration-300">
-                        <div className="flex items-center gap-3 mb-3">
-                            <h4 className="text-green-600 font-bold text-lg">{title}</h4>
-                        </div>
-                        <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed text-sm">
-                          {parseHtmlToReact(contentWithoutTitle)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
               {/* Strategic Implications */}
               {data.executiveSummary.strategicImplication && (
                 <div className="group relative">
