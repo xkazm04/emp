@@ -262,8 +262,8 @@ const TextAggregator = {
           (similarities.semantic * 0.4) + 
           (similarities.theme * 0.3);
         
-        // Lowered threshold for better grouping (20+ frequency target)
-        if (combinedSimilarity > 0.45) {
+        // This prevents overly broad groupings and creates more actionable themes
+        if (combinedSimilarity > 0.56) {
           cluster.count++;
           processed.add(otherIdx);
           

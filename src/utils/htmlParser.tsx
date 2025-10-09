@@ -9,6 +9,11 @@ export interface ParsedElement {
 export function parseHtmlToReact(htmlString: string): React.ReactNode {
   if (!htmlString) return null;
 
+  // Handle h2 or h3 tags at the top level (executive summary titles and strategic implications)
+  if (htmlString.includes('<h2>') || htmlString.includes('<h3>')) {
+    return parseExecutiveSummaryWithHeaders(htmlString);
+  }
+
   // Handle leader-summary divs first
   if (htmlString.includes("class='leader-summary'") || htmlString.includes('class="leader-summary"')) {
     return parseLeaderSummary(htmlString);
@@ -33,6 +38,51 @@ export function parseHtmlToReact(htmlString: string): React.ReactNode {
       ))}
     </div>
   );
+}
+
+function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
+  const elements: React.ReactNode[] = [];
+  let elementKey = 0;
+
+  // Split by h2, h3, and p tags while preserving them (using [\s\S] instead of 's' flag for compatibility)
+  const parts = htmlString.split(/(<h2>[\s\S]*?<\/h2>|<h3>[\s\S]*?<\/h3>|<p>[\s\S]*?<\/p>)/).filter(part => part.trim());
+
+  parts.forEach(part => {
+    if (part.startsWith('<h2>')) {
+      // Extract h2 content
+      const h2Content = part.replace(/<\/?h2>/g, '');
+      elements.push(
+        <h2 key={elementKey++} className="text-3xl font-bold text-slate-900 mb-4">
+          {parseInlineElements(h2Content)}
+        </h2>
+      );
+    } else if (part.startsWith('<h3>')) {
+      // Extract h3 content
+      const h3Content = part.replace(/<\/?h3>/g, '');
+      elements.push(
+        <h3 key={elementKey++} className="text-xl font-bold text-slate-800 mb-3 mt-6">
+          {parseInlineElements(h3Content)}
+        </h3>
+      );
+    } else if (part.startsWith('<p>')) {
+      // Extract p content
+      const pContent = part.replace(/<\/?p>/g, '');
+      elements.push(
+        <div key={elementKey++} className="leading-relaxed mb-4 text-slate-700">
+          {parseInlineElements(pContent)}
+        </div>
+      );
+    } else if (part.trim()) {
+      // Handle any loose text
+      elements.push(
+        <div key={elementKey++} className="leading-relaxed mb-3">
+          {parseInlineElements(part)}
+        </div>
+      );
+    }
+  });
+
+  return <div className="space-y-4">{elements}</div>;
 }
 
 function parseLeaderSummary(htmlString: string): React.ReactNode {

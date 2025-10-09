@@ -122,8 +122,8 @@ const MetricsCalculator = {
     Object.keys(leaderGroups).forEach(leaderName => {
       if (leaderName && leaderName !== 'null' && leaderName !== 'undefined') {
         const leaderData = leaderGroups[leaderName];
-        // Include all leaders regardless of response count (removed 3+ responses minimum)
-        if (leaderData.length >= 1) {
+        // Only include leaders with meaningful sample sizes (3+ responses)
+        if (leaderData.length >= 3) {
           const leaderMetrics = this.calculateMetricsForSegment(leaderData, quarterId, leaderName);
           metrics.push(...leaderMetrics);
           

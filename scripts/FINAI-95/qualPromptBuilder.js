@@ -73,14 +73,22 @@ CRITICAL REQUIREMENTS:
    - Use FULL original text from full_examples
    - NO summarizing or paraphrasing
    - NO truncation with "..." 
-   - Separate with symbol " ; " 
+   - Separate with symbol " | " 
    - If quote is long, use it anyway - preserve complete thoughts
 
-3. CONTENT - SPECIFIC AND ACTIONABLE:
+3. CONTENT - SPECIFIC AND ACTIONABLE (50-80 WORDS):
    - Focus on the SPECIFIC problem, not broad themes
-   - Include WHAT exactly needs fixing
-   - 30-50 words maximum
+   - Include WHAT exactly is broken/missing/needed
+   - Mention the IMPACT or consequence when relevant
    - Avoid generic language like "employees desire" or "indicating a need"
+   - Be concrete and actionable
+   
+   EXAMPLES OF SPECIFICITY:
+   ✓ GOOD: "The Zingtree system provides inaccurate guidance, suggesting refunds for non-refundable deals, causing agent confusion. Frequent, unhelpful system changes complicate processes and reduce CS agent efficiency."
+   ✗ BAD: "Employees report technology issues that impact their work and would like better systems."
+   
+   ✓ GOOD: "Managers need to establish regular, two-way communication channels for expectations, priorities, and decisions. Provide specific, actionable positive feedback to reinforce successful practices."
+   ✗ BAD: "Better communication from leadership would be helpful for employees to feel more informed."
    
 
 OUTPUT FORMAT:
@@ -450,12 +458,30 @@ Generate metric-driven leadership insights with specific percentages and actiona
           logMessage(LOGGER.WARN, `Using fallback examples for ${title} - original examples may have been truncated`);
         }
         
+        // Preserve full content but ensure it ends at a complete sentence
+        let content = insight.content || '';
+        if (content.length > 400) {
+          // Find last complete sentence within 400 chars
+          const truncated = content.substring(0, 400);
+          const lastPeriod = truncated.lastIndexOf('.');
+          const lastExclamation = truncated.lastIndexOf('!');
+          const lastQuestion = truncated.lastIndexOf('?');
+          const lastSentenceEnd = Math.max(lastPeriod, lastExclamation, lastQuestion);
+          
+          if (lastSentenceEnd > 300) {
+            content = truncated.substring(0, lastSentenceEnd + 1);
+          } else {
+            // If no sentence end found, keep first 380 chars and add period
+            content = truncated.substring(0, 380).trim() + '.';
+          }
+        }
+        
         return {
           quarter: quarterId,
           insight_type: insight.insight_type || 'themes',
           category: category,
           title: title, // Now guaranteed to be 3-4 words
-          content: (insight.content || '').substring(0, 300), // Increased limit for specific details
+          content: content, // Full content with complete sentences
           frequency: parseInt(insight.frequency) || 0,
           sample_responses: sampleResponses, // Full examples preserved
           question_reference: insight.question_reference || category,
