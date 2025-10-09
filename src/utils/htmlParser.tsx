@@ -44,8 +44,8 @@ function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
   const elements: React.ReactNode[] = [];
   let elementKey = 0;
 
-  // Split by h2, h3, and p tags while preserving them (using [\s\S] instead of 's' flag for compatibility)
-  const parts = htmlString.split(/(<h2>[\s\S]*?<\/h2>|<h3>[\s\S]*?<\/h3>|<p>[\s\S]*?<\/p>)/).filter(part => part.trim());
+  // Split by h2, h3, p, ol, and ul tags while preserving them (using [\s\S] instead of 's' flag for compatibility)
+  const parts = htmlString.split(/(<h2>[\s\S]*?<\/h2>|<h3>[\s\S]*?<\/h3>|<p>[\s\S]*?<\/p>|<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
 
   parts.forEach(part => {
     if (part.startsWith('<h2>')) {
@@ -72,6 +72,40 @@ function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
           {parseInlineElements(pContent)}
         </div>
       );
+    } else if (part.startsWith('<ol>')) {
+      // Parse ordered list items
+      const listItems = part.match(/<li>([\s\S]*?)<\/li>/g);
+      if (listItems) {
+        elements.push(
+          <ol key={elementKey++} className="list-decimal list-outside space-y-3 text-slate-700 ml-8 mb-4 mt-2">
+            {listItems.map((item, idx) => {
+              const liContent = item.replace(/<\/?li>/g, '');
+              return (
+                <li key={idx} className="leading-relaxed pl-2">
+                  {parseInlineElements(liContent)}
+                </li>
+              );
+            })}
+          </ol>
+        );
+      }
+    } else if (part.startsWith('<ul>')) {
+      // Parse unordered list items
+      const listItems = part.match(/<li>([\s\S]*?)<\/li>/g);
+      if (listItems) {
+        elements.push(
+          <ul key={elementKey++} className="list-disc list-outside space-y-2 text-slate-700 ml-8 mb-4 mt-2">
+            {listItems.map((item, idx) => {
+              const liContent = item.replace(/<\/?li>/g, '');
+              return (
+                <li key={idx} className="leading-relaxed pl-2">
+                  {parseInlineElements(liContent)}
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
     } else if (part.trim()) {
       // Handle any loose text
       elements.push(
