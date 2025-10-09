@@ -121,11 +121,27 @@ const JSONExporter = {
               bullets: [] // Keep for backward compatibility
             };
             
+            logMessage(LOGGER.DEBUG, `Leader payload prepared for ${leader.name}`, {
+              hasKeyStats: !!leaderPayload.keyStats,
+              metricsCount: leaderPayload.metrics ? leaderPayload.metrics.length : 0,
+              insightsCount: leaderPayload.insights ? leaderPayload.insights.length : 0
+            });
+            
             const narrative = JSONPostprocessor.generateLeaderNarrative(leaderPayload);
             jsonOutput.leaders[index].narrative = narrative;
             
+            logMessage(LOGGER.INFO, `Successfully assigned narrative for ${leader.name}`, {
+              narrativeAssigned: !!jsonOutput.leaders[index].narrative,
+              hasSummary: narrative && narrative.summary ? true : false
+            });
+            
           } catch (error) {
-            logMessage(LOGGER.WARN, `Leader narrative generation failed for ${leader.name}, skipping`, { error: error.toString() });
+            logMessage(LOGGER.ERROR, `Leader narrative generation failed for ${leader.name}`, { 
+              errorMessage: error.message,
+              errorType: error.constructor ? error.constructor.name : 'Unknown',
+              errorStack: error.stack ? error.stack.substring(0, 500) : 'No stack trace',
+              errorString: error.toString()
+            });
             jsonOutput.leaders[index].narrative = null;
           }
         });

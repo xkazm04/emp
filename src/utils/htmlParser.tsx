@@ -9,8 +9,8 @@ export interface ParsedElement {
 export function parseHtmlToReact(htmlString: string): React.ReactNode {
   if (!htmlString) return null;
 
-  // Handle h2 or h3 tags at the top level (executive summary titles and strategic implications)
-  if (htmlString.includes('<h2>') || htmlString.includes('<h3>')) {
+  // Handle h2, h3 tags, or ordered/unordered lists at the top level (executive summary, strategic implications, etc.)
+  if (htmlString.includes('<h2>') || htmlString.includes('<h3>') || htmlString.includes('<ol>') || htmlString.includes('<ul>')) {
     return parseExecutiveSummaryWithHeaders(htmlString);
   }
 
@@ -44,8 +44,17 @@ function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
   const elements: React.ReactNode[] = [];
   let elementKey = 0;
 
+  // First, extract and wrap any content inside <div class='analysis-paragraph'>
+  let processedString = htmlString;
+  
+  // Check if content is wrapped in analysis-paragraph div
+  const divMatch = htmlString.match(/<div class=['"]analysis-paragraph['"]>([\s\S]*?)<\/div>/);
+  if (divMatch) {
+    processedString = divMatch[1]; // Extract inner content
+  }
+
   // Split by h2, h3, p, ol, and ul tags while preserving them (using [\s\S] instead of 's' flag for compatibility)
-  const parts = htmlString.split(/(<h2>[\s\S]*?<\/h2>|<h3>[\s\S]*?<\/h3>|<p>[\s\S]*?<\/p>|<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
+  const parts = processedString.split(/(<h2>[\s\S]*?<\/h2>|<h3>[\s\S]*?<\/h3>|<p>[\s\S]*?<\/p>|<ol>[\s\S]*?<\/ol>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
 
   parts.forEach(part => {
     if (part.startsWith('<h2>')) {
@@ -73,12 +82,13 @@ function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
         </div>
       );
     } else if (part.startsWith('<ol>')) {
-      // Parse ordered list items
+      // Parse ordered list items - handle both plain text and items with <b> tags
       const listItems = part.match(/<li>([\s\S]*?)<\/li>/g);
       if (listItems) {
         elements.push(
           <ol key={elementKey++} className="list-decimal list-outside space-y-3 text-slate-700 ml-8 mb-4 mt-2">
             {listItems.map((item, idx) => {
+              // Remove <li> tags and preserve inner HTML including <b> tags
               const liContent = item.replace(/<\/?li>/g, '');
               return (
                 <li key={idx} className="leading-relaxed pl-2">
@@ -107,9 +117,9 @@ function parseExecutiveSummaryWithHeaders(htmlString: string): React.ReactNode {
         );
       }
     } else if (part.trim()) {
-      // Handle any loose text
+      // Handle any loose text (including text before lists)
       elements.push(
-        <div key={elementKey++} className="leading-relaxed mb-3">
+        <div key={elementKey++} className="leading-relaxed mb-3 text-slate-700">
           {parseInlineElements(part)}
         </div>
       );
@@ -189,8 +199,8 @@ function parseHtmlContent(htmlString: string): React.ReactNode {
   const elements: React.ReactNode[] = [];
   let elementKey = 0;
 
-  // Split by various HTML tags
-  const parts = htmlString.split(/(<h3>[\s\S]*?<\/h3>|<h4[^>]*>[\s\S]*?<\/h4>|<p[^>]*>[\s\S]*?<\/p>|<ul>[\s\S]*?<\/ul>)/).filter(part => part.trim());
+  // Split by various HTML tags including ol/ul for lists
+  const parts = htmlString.split(/(<h3>[\s\S]*?<\/h3>|<h4[^>]*>[\s\S]*?<\/h4>|<p[^>]*>[\s\S]*?<\/p>|<ul>[\s\S]*?<\/ul>|<ol>[\s\S]*?<\/ol>)/).filter(part => part.trim());
 
   parts.forEach(part => {
     if (part.startsWith('<h3>')) {
@@ -221,17 +231,35 @@ function parseHtmlContent(htmlString: string): React.ReactNode {
         </div>
       );
     } else if (part.startsWith('<ul>')) {
-      // Parse list items
+      // Parse unordered list items - handle both plain text and items with <strong> tags
       const listItems = part.match(/<li>([\s\S]*?)<\/li>/g);
       if (listItems) {
         elements.push(
-          <ul key={elementKey++} className="list-disc list-inside space-y-1 text-sm text-slate-600 ml-4 mb-3">
+          <ul key={elementKey++} className="list-disc list-outside space-y-2 text-sm text-slate-600 ml-6 mb-3">
+            {listItems.map((item, idx) => {
+              // Remove <li> tags and preserve inner HTML including <strong> tags
+              const liContent = item.replace(/<\/?li>/g, '');
+              return (
+                <li key={idx} className="leading-relaxed pl-1">
+                  {parseInlineElements(liContent)}
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
+    } else if (part.startsWith('<ol>')) {
+      // Parse ordered list items
+      const listItems = part.match(/<li>([\s\S]*?)<\/li>/g);
+      if (listItems) {
+        elements.push(
+          <ol key={elementKey++} className="list-decimal list-outside space-y-2 text-sm text-slate-600 ml-6 mb-3">
             {listItems.map((item, idx) => (
-              <li key={idx}>
+              <li key={idx} className="leading-relaxed pl-1">
                 {parseInlineElements(item.replace(/<\/?li>/g, ''))}
               </li>
             ))}
-          </ul>
+          </ol>
         );
       }
     } else if (part.trim()) {
@@ -356,6 +384,16 @@ function parseInlineElements(text: string): React.ReactNode {
       regex: /<span class=['"]priority-high['"][^>]*>(.*?)<\/span>/g, 
       type: 'priority' as const,
       className: 'font-bold text-orange-900 bg-orange-100 px-2 py-1 rounded uppercase text-xs tracking-wide'
+    },
+    { 
+      regex: /<span class=['"]priority-medium['"][^>]*>(.*?)<\/span>/g, 
+      type: 'priority' as const,
+      className: 'font-semibold text-blue-900 bg-blue-100 px-2 py-1 rounded uppercase text-xs tracking-wide'
+    },
+    { 
+      regex: /<span class=['"]priority-low['"][^>]*>(.*?)<\/span>/g, 
+      type: 'priority' as const,
+      className: 'font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded uppercase text-xs tracking-wide'
     },
     { 
       regex: /<b>(.*?)<\/b>/g, 

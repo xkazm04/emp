@@ -29,19 +29,70 @@ const JSONPostprocessor = {
    * Generates leader-specific narrative using LLM only
    */
   generateLeaderNarrative: function(payload) {
-    const prompt = this.buildLeaderNarrativePrompt(payload);
-    
-    logMessage(LOGGER.INFO, `Generating leader narrative for ${payload.leader}`);
-    const response = this.callGeminiAPI(prompt, payload);
-    const parsed = this.parseJsonResponse(response);
-    
-    if (parsed && parsed.summary) {
+    try {
+      const prompt = this.buildLeaderNarrativePrompt(payload);
+      
+      logMessage(LOGGER.INFO, `Generating leader narrative for ${payload.leader}`);
+      const response = this.callGeminiAPI(prompt, payload);
+      
+      logMessage(LOGGER.DEBUG, `Raw LLM response for ${payload.leader}`, {
+        responseLength: response ? response.length : 0,
+        responsePreview: response ? response.substring(0, 300) : 'null'
+      });
+      
+      const parsed = this.parseJsonResponse(response);
+      
+      // Enhanced debugging and validation
+      if (!parsed) {
+        logMessage(LOGGER.ERROR, `Failed to parse JSON response for ${payload.leader}`, {
+          responsePreview: response ? response.substring(0, 500) : 'null',
+          responseLength: response ? response.length : 0
+        });
+        throw new Error('Failed to parse LLM response as JSON');
+      }
+      
+      logMessage(LOGGER.DEBUG, `Parsed response structure for ${payload.leader}`, {
+        parsedKeys: Object.keys(parsed),
+        hasSummary: !!parsed.summary,
+        hasFocusAreas: !!parsed.focusAreas,
+        summaryLength: parsed.summary ? parsed.summary.length : 0
+      });
+      
+      if (!parsed.summary) {
+        logMessage(LOGGER.ERROR, `LLM response missing 'summary' field for ${payload.leader}`, {
+          parsedKeys: Object.keys(parsed),
+          parsedContent: JSON.stringify(parsed).substring(0, 500)
+        });
+        throw new Error('Invalid LLM response structure: missing summary field');
+      }
+      
+      if (!parsed.focusAreas || !Array.isArray(parsed.focusAreas)) {
+        logMessage(LOGGER.WARN, `LLM response missing or invalid 'focusAreas' for ${payload.leader}`, {
+          focusAreasType: typeof parsed.focusAreas,
+          focusAreasValue: parsed.focusAreas
+        });
+        // Set empty array if missing but don't fail - summary is more critical
+        parsed.focusAreas = [];
+      }
+      
+      logMessage(LOGGER.INFO, `Successfully generated narrative for ${payload.leader}`, {
+        hasSummary: !!parsed.summary,
+        focusAreasCount: parsed.focusAreas.length,
+        summaryPreview: parsed.summary ? parsed.summary.substring(0, 100) : 'null'
+      });
+      
       return {
         llm_generated: true,
         ...parsed
       };
-    } else {
-      throw new Error('Invalid LLM response structure for leader narrative');
+    } catch (error) {
+      logMessage(LOGGER.ERROR, `Exception in generateLeaderNarrative for ${payload.leader}`, {
+        errorMessage: error.message,
+        errorStack: error.stack,
+        errorType: error.constructor.name
+      });
+      // Re-throw the error so it's caught by the caller in jsonExporter
+      throw error;
     }
   },
   
