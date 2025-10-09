@@ -179,9 +179,9 @@ const MetricsParsers = {
   },
   
   /**
-   * Parse Steam Leader name
+   * Parse Steam Leader name and remove department information in parentheses
    * @param {Object} response - Individual response object
-   * @returns {String|null} - Leader name or null
+   * @returns {String|null} - Leader name without department or null
    */
   parseLeaderName(response) {
     const leaderField = Object.keys(response).find(key => 
@@ -190,7 +190,11 @@ const MetricsParsers = {
     );
     if (leaderField) {
       const value = response[leaderField];
-      return typeof value === 'string' ? value.trim() : null;
+      if (typeof value === 'string') {
+        // Remove department in parentheses (e.g., "Dusan Senkypl (STeam, Individual Contributors)" -> "Dusan Senkypl")
+        const nameWithoutDept = value.split('(')[0].trim();
+        return nameWithoutDept || null;
+      }
     }
     return null;
   },

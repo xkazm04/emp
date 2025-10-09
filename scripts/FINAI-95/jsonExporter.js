@@ -360,6 +360,13 @@ const JSONExporter = {
     
     if (leaderMetrics.length === 0) return null;
     
+    // Check if leader has metrics for current quarter - if not, exclude from export
+    const currentQuarterMetrics = allMetrics.filter(m => m.leader === leaderName && m.quarter === currentQuarter);
+    if (currentQuarterMetrics.length === 0) {
+      logMessage(LOGGER.INFO, `Excluding leader ${leaderName} - no metrics for current quarter ${currentQuarter}`);
+      return null;
+    }
+    
     // Build key stats with historical values
     const keyStats = this.buildLeaderKeyStats(leaderName, allMetrics, timeseriesIndex);
     
