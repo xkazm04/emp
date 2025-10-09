@@ -262,8 +262,9 @@ const TextAggregator = {
           (similarities.semantic * 0.4) + 
           (similarities.theme * 0.3);
         
-        // This prevents overly broad groupings and creates more actionable themes
-        if (combinedSimilarity > 0.56) {
+        // Higher threshold = more specific, fragmented clusters (less grouping)
+        // 0.68 requires 68% similarity to merge responses together
+        if (combinedSimilarity > 0.68) {
           cluster.count++;
           processed.add(otherIdx);
           
@@ -335,8 +336,9 @@ const TextAggregator = {
         const themeUnion = new Set([...themeWords1, ...themeWords2]).size;
         const themeJaccard = themeOverlap / themeUnion;
         
-        // Merge if themes are very similar (60% overlap)
-        if (themeJaccard > 0.6) {
+        // Higher threshold (0.75) = stricter merging, keeps clusters more fragmented/specific
+        // Only merge if themes are 75%+ identical
+        if (themeJaccard > 0.75) {
           currentCluster.count += otherCluster.count;
           
           // Merge examples - keep the best ones and ensure diversity

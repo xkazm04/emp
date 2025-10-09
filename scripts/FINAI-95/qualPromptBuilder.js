@@ -9,15 +9,15 @@ const PromptBuilder = {
    * @returns {String} - Improved prompt for specific insights
    */
   buildCategoryPrompt: function(categoryData, category, quarterId) {
-    // FILTER: Only process clusters with 30+ frequency
-    const highFrequencyClusters = categoryData.clusters.filter(c => c.count >= 20);
+    // FILTER: Only process clusters with 30+ frequency - lower threshold shows more specific groups
+    const highFrequencyClusters = categoryData.clusters.filter(c => c.count >= 30);
     
     if (highFrequencyClusters.length === 0) {
-      logMessage(LOGGER.WARN, `No clusters with 30+ frequency for category ${category}`);
+      logMessage(LOGGER.WARN, `No clusters with 25+ frequency for category ${category}`);
       return null;
     }
     
-    logMessage(LOGGER.INFO, `Category ${category}: Processing ${highFrequencyClusters.length} clusters with 30+ frequency`);
+    logMessage(LOGGER.INFO, `Category ${category}: Processing ${highFrequencyClusters.length} clusters with 25+ frequency`);
     
     // Prepare cluster data with FULL examples (no truncation)
     const enrichedClusters = highFrequencyClusters.map(cluster => {
@@ -114,7 +114,7 @@ VALIDATION CHECKLIST:
 □ Sample_responses contains 3 COMPLETE quotes with " | " separators
 □ No truncation in quotes - full original text preserved
 □ Content describes WHAT is specifically broken/missing
-□ Only themes with 30+ frequency included
+□ Only themes with 25+ frequency included
 
 Generate specific, actionable insights with precise titles and complete example quotes.`;
 
@@ -490,7 +490,7 @@ Generate metric-driven leadership insights with specific percentages and actiona
       }).filter(insight => 
         insight.content && 
         insight.content.length > 0 && 
-        insight.frequency >= 20 &&
+        insight.frequency >= 25 && // Lower threshold allows more specific groups
         insight.title.split(' ').length >= 2 // Ensure title has at least 2 words
       );
       
@@ -546,11 +546,11 @@ Generate metric-driven leadership insights with specific percentages and actiona
       return insights.map((insight) => {
         // Generate title from content - prioritizing metrics if present
         let title = '';
-        const content = insight.content || '';
+        const contentText = insight.content || '';
         
         // Check for metric-based content first
-        const percentageMatch = content.match(/(\d+)%/);
-        const metricMatch = content.match(/(satisfaction|retention|confidence|empowerment|recognition|resources|leadership)/i);
+        const percentageMatch = contentText.match(/(\d+)%/);
+        const metricMatch = contentText.match(/(satisfaction|retention|confidence|empowerment|recognition|resources|leadership)/i);
         
         if (percentageMatch && metricMatch) {
           const percentage = percentageMatch[1];
@@ -566,7 +566,7 @@ Generate metric-driven leadership insights with specific percentages and actiona
           }
         } else {
           // Fallback to extracting meaningful words from content
-          const meaningfulWords = content.split(' ')
+          const meaningfulWords = contentText.split(' ')
             .filter(w => 
               w.length > 3 && 
               !['the', 'and', 'that', 'this', 'with', 'from', 'they', 'have', 'more', 
@@ -602,13 +602,45 @@ Generate metric-driven leadership insights with specific percentages and actiona
           title = title.substring(0, 47) + '...';
         }
         
+        // Preserve full content but ensure complete sentences
+        let content = insight.content || '';
+        if (content.length > 500) {
+          const truncated = content.substring(0, 500);
+          const lastSentenceEnd = Math.max(
+            truncated.lastIndexOf('.'),
+            truncated.lastIndexOf('!'),
+            truncated.lastIndexOf('?')
+          );
+          if (lastSentenceEnd > 400) {
+            content = truncated.substring(0, lastSentenceEnd + 1);
+          } else {
+            content = truncated.trim() + '.';
+          }
+        }
+        
+        // Preserve supporting evidence without truncation
+        let supportingEvidence = insight.supporting_evidence || '';
+        if (supportingEvidence.length > 300) {
+          const truncated = supportingEvidence.substring(0, 300);
+          const lastSentenceEnd = Math.max(
+            truncated.lastIndexOf('.'),
+            truncated.lastIndexOf('!'),
+            truncated.lastIndexOf('?')
+          );
+          if (lastSentenceEnd > 250) {
+            supportingEvidence = truncated.substring(0, lastSentenceEnd + 1);
+          } else {
+            supportingEvidence = truncated.trim() + '.';
+          }
+        }
+        
         return {
           quarter: quarterId,
           leader_name: insight.leader_name || '',
-          title: title, // Generated title for column 3
+          title: title, // Auto-generated from content
           insight_type: insight.insight_type || 'observation',
-          content: (insight.content || '').substring(0, 500),
-          supporting_evidence: (insight.supporting_evidence || '').substring(0, 200)
+          content: content,
+          supporting_evidence: supportingEvidence
         };
       }).filter(insight => insight.leader_name && insight.content);
       
