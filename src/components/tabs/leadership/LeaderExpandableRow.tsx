@@ -59,7 +59,7 @@ export function LeaderExpandableRow({ leader, isExpanded }: LeaderExpandableRowP
                       </div>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {leader.metrics
-                          .filter(metric => metric.metricKey !== 'overall_satisfaction_score') // Exclude eSAT score
+                          .filter(metric => metric.metricKey !== 'overall_satisfaction_score' && metric.metricKey !== 'total_responses') // Exclude eSAT score and total_responses
                           .map((metric, index) => {
                             const currentValue = metric.values?.[0];
                             const previousValue = metric.values?.[1];
